@@ -1,48 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>owen's games</title>
-    <link rel="icon" type="image/png" href="backup/images/icon.png">
-    <a href="stats.html" style="color: #7ab8ff; text-decoration: none; font-weight: bold; border: 1px solid #7ab8ff; padding: 5px 15px; border-radius: 20px;">📊 View Site Stats</a>
+    <header>
+    <div class="nav-container">
+        <a href="#" class="title">owen's games</a>
+        <a href="stats.html" class="stats-btn">🏆 View Stats</a>
+    </div>
+</header>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    
     <style>
-        body { background: linear-gradient(180deg, #1c1f26 0%, #1a1d27 50%, #1e212b 100%); color: #f2f4ff; margin: 0; font-family: Arial, sans-serif; overflow-x: hidden; }
-        header { width: 100%; padding: 16px 0; background: rgba(30, 34, 44, 0.8); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.04); position: sticky; top: 0; z-index: 50; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
-        .nav-container { width: 90%; max-width: 1100px; margin: auto; display: flex; justify-content: space-between; align-items: center; }
-        .title { font-size: 30px; font-weight: bold; background: linear-gradient(to right, #7ab8ff, #a6d2ff); -webkit-background-clip: text; color: transparent; text-shadow: 0 0 14px rgba(122,184,255,0.4); text-decoration: none; }
-        
-        .search-container { width: 90%; max-width: 1100px; margin: 25px auto 0 auto; text-align: center; }
-        #searchInput { width: 100%; padding: 14px 18px; background: #262b36; border: 2px solid #343b4a; border-radius: 12px; color: #fff; font-size: 17px; outline: none; transition: 0.15s; }
-        #searchInput:focus { border-color: #7ab8ff; box-shadow: 0 0 12px rgba(122,184,255,0.4); }
-        #gameCount { width: 90%; max-width: 1100px; margin: 10px auto 0 auto; font-size: 18px; color: #c9d4ea; opacity: 0.8; }
+        :root {
+            --bg-dark: #0f1115;
+            --panel-bg: #1c1f26;
+            --accent: #7ab8ff;
+            --text-main: #f2f4ff;
+            --text-dim: #949ba4;
+            --card-bg: #232732;
+        }
 
-        .grid { width: 90%; max-width: 1100px; margin: 20px auto 40px auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; }
-        .card { background: #232732; border-radius: 18px; border: 1px solid #303543; transition: 0.2s ease-in-out; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.25); }
-        .card:hover { transform: translateY(-5px); border-color: #7ab8ff; background: #272c38; }
-        .card-link { text-decoration: none; color: inherit; padding: 18px; flex-grow: 1; }
-        .card-title { font-size: 20px; font-weight: bold; color: #aad0ff; margin-bottom: 6px; }
-        .card-desc { color: #c7ccdd; font-size: 14px; margin-bottom: 10px; height: 40px; overflow: hidden; }
-        
-        .card-stats { font-size: 12px; color: #7ab8ff; display: flex; gap: 10px; opacity: 0.8; font-weight: bold; }
-        .card-actions { display: flex; border-top: 1px solid #303543; background: rgba(0,0,0,0.1); }
-        .comment-trigger { flex: 1; background: none; border: none; color: #7ab8ff; padding: 12px; cursor: pointer; font-weight: bold; font-size: 13px; transition: 0.2s; }
-        .comment-trigger:hover { background: #303543; color: #fff; }
-        .heart-btn { background: none; border: none; border-left: 1px solid #303543; color: #fff; padding: 0 15px; cursor: pointer; font-size: 18px; transition: 0.2s; }
-        .heart-btn.active { color: #ff4b4b; text-shadow: 0 0 8px rgba(255,75,75,0.5); }
+        body { 
+            background-color: var(--bg-dark);
+            background-image: radial-gradient(circle at top, #1e2330 0%, #0f1115 100%);
+            color: var(--text-main); 
+            margin: 0; 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            overflow-x: hidden; 
+        }
 
-        #comment-panel { position: fixed; top: 0; right: -400px; width: 350px; height: 100%; background: #1a1d27; z-index: 1001; transition: 0.3s; display: flex; flex-direction: column; border-left: 1px solid #303543; box-shadow: -5px 0 20px rgba(0,0,0,0.5); }
+        header { 
+            width: 100%; padding: 15px 0; background: rgba(15, 17, 21, 0.9); 
+            backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.08); 
+            position: sticky; top: 0; z-index: 100; 
+        }
+
+        .nav-container { width: 90%; max-width: 1200px; margin: auto; display: flex; justify-content: space-between; align-items: center; }
+        .title { font-size: 24px; font-weight: 800; background: linear-gradient(to right, var(--accent), #fff); -webkit-background-clip: text; color: transparent; text-decoration: none; }
+        
+        .stats-btn { color: var(--accent); text-decoration: none; font-size: 14px; font-weight: bold; border: 1.5px solid var(--accent); padding: 6px 16px; border-radius: 20px; transition: 0.3s; }
+        .stats-btn:hover { background: var(--accent); color: var(--bg-dark); }
+
+        .hero { text-align: center; padding: 40px 20px 10px; }
+        .search-container { width: 90%; max-width: 500px; margin: 20px auto; }
+        #searchInput { width: 100%; padding: 14px 24px; background: var(--panel-bg); border: 1px solid #343b4a; border-radius: 50px; color: #fff; font-size: 16px; outline: none; transition: 0.3s; }
+        #searchInput:focus { border-color: var(--accent); box-shadow: 0 0 15px rgba(122, 184, 255, 0.2); }
+        #gameCount { text-align: center; color: var(--text-dim); margin-bottom: 20px; font-size: 14px; }
+
+        .grid { width: 90%; max-width: 1200px; margin: 0 auto 30px; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+        
+        .card { background: var(--card-bg); border-radius: 14px; border: 1px solid rgba(255,255,255,0.05); transition: 0.3s; display: none; flex-direction: column; overflow: hidden; }
+        .card.visible { display: flex; }
+        .card:hover { transform: translateY(-5px); border-color: var(--accent); }
+        
+        .card-link { text-decoration: none; color: inherit; padding: 20px; flex-grow: 1; }
+        .card-title { font-size: 19px; font-weight: bold; margin-bottom: 5px; color: #fff; }
+        .card-desc { color: var(--text-dim); font-size: 13px; height: 38px; overflow: hidden; }
+        .card-stats { font-size: 12px; color: var(--accent); display: flex; gap: 12px; margin-top: 10px; font-weight: bold; }
+        
+        .card-actions { display: flex; background: rgba(0,0,0,0.2); padding: 8px; gap: 8px; }
+        .comment-trigger { flex: 1; background: #343b4a; border: none; color: #fff; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 13px; }
+        .heart-btn { background: #343b4a; border: none; color: #fff; width: 45px; border-radius: 8px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+        .heart-btn.active { color: #ff4b4b; background: rgba(255, 75, 75, 0.1); }
+
+        .load-more-container { text-align: center; margin-bottom: 60px; }
+        #loadMoreBtn { background: var(--accent); color: var(--bg-dark); border: none; padding: 14px 40px; border-radius: 50px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s; }
+        #loadMoreBtn:hover { transform: scale(1.05); filter: brightness(1.1); }
+
+        /* Comment Panel */
+        #comment-panel { position: fixed; top: 0; right: -400px; width: 350px; height: 100%; background: #1a1d27; z-index: 1001; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; border-left: 1px solid #303543; box-shadow: -10px 0 30px rgba(0,0,0,0.5); }
         #comment-panel.active { right: 0; }
-        .panel-header { padding: 20px; background: #232732; border-bottom: 1px solid #303543; }
+        .panel-header { padding: 20px; background: #232732; border-bottom: 1px solid #303543; display: flex; justify-content: space-between; align-items: center; }
         .comment-list { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+        .single-comment { background: #272c38; padding: 12px; border-radius: 10px; border-left: 3px solid var(--accent); font-size: 14px; }
         .comment-input-area { padding: 20px; background: #232732; border-top: 1px solid #303543; display: flex; flex-direction: column; gap: 10px; }
-        .comment-input-area input, textarea { background: #1c1f26; border: 1px solid #343b4a; color: white; padding: 10px; border-radius: 8px; outline: none; }
-        .send-btn { background: #7ab8ff; color: #1c1f26; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .single-comment { background: #272c38; padding: 10px; border-radius: 10px; border-left: 3px solid #7ab8ff; }
+        .comment-input-area input, .comment-input-area textarea { background: #1c1f26; border: 1px solid #343b4a; color: white; padding: 10px; border-radius: 8px; outline: none; }
+        .send-btn { background: var(--accent); color: #1c1f26; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
 
-        #bottom-banner { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(40, 45, 56, 0.85); color: #e6ecff; padding: 12px 20px; border-radius: 14px; font-size: 14px; border: 1px solid #3a4150; z-index: 999; backdrop-filter: blur(8px); }
-        #bottom-banner a { color: #7ab8ff; font-weight: 600; }
-        footer { text-align: center; padding: 40px; color: #b5bdd0; background: rgba(30,34,44,0.7); border-top: 1px solid rgba(255,255,255,0.04); }
+        footer { text-align: center; padding: 40px; color: var(--text-dim); border-top: 1px solid rgba(255,255,255,0.05); }
     </style>
 </head>
 <body>
@@ -50,505 +85,244 @@
 <header>
     <div class="nav-container">
         <a href="#" class="title">owen's games</a>
+        <a href="stats.html" class="stats-btn">📊 Site Stats</a>
     </div>
 </header>
 
-<div class="search-container">
-    <input type="text" id="searchInput" placeholder="Search games...">
+<div class="hero">
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="Search for a game...">
+    </div>
+    <div id="gameCount">Loading games...</div>
 </div>
-<div id="gameCount">Loading...</div>
 
 <div class="grid" id="gameGrid">
-    <div class="card" data-id="funny-shooter">
-        <a href="backup/games/shooter" target="_blank" class="card-link" onclick="handleGameClick('funny-shooter')">
-            <div class="card-title">Funny Shooter</div>
-            <div class="card-desc">kinda funny shooter</div>
-            <div class="card-stats"><span>🖱️ <span id="clicks-funny-shooter">0</span></span><span>❤️ <span id="hearts-funny-shooter">0</span></span></div>
-        </a>
-        <div class="card-actions">
-            <button class="comment-trigger" onclick="openComments('funny-shooter')">💬 Chat</button>
-            <button class="heart-btn" id="heart-funny-shooter" onclick="toggleHeart('funny-shooter')">🤍</button>
-        </div>
-    </div>
+    <div class="card" data-id="funny-shooter"><a href="backup/games/shooter" target="_blank" class="card-link" onclick="handleGameClick('funny-shooter')"><div class="card-title">Funny Shooter</div><div class="card-desc">kinda funny shooter</div><div class="card-stats"><span>🖱️ <span id="clicks-funny-shooter">0</span></span><span>❤️ <span id="hearts-funny-shooter">0</span></span></div></a><div class="card-actions"><button class="comment-trigger" onclick="openComments('funny-shooter')">💬 Chat</button><button class="heart-btn" id="heart-funny-shooter" onclick="toggleHeart('funny-shooter')">🤍</button></div></div>
+    <div class="card" data-id="alien-attack"><a href="backup/games/game" target="_blank" class="card-link" onclick="handleGameClick('alien-attack')"><div class="card-title">Alien Attack</div><div class="card-desc">this is really hard, like really</div><div class="card-stats"><span>🖱️ <span id="clicks-alien-attack">0</span></span><span>❤️ <span id="hearts-alien-attack">0</span></span></div></a><div class="card-actions"><button class="comment-trigger" onclick="openComments('alien-attack')">💬 Chat</button><button class="heart-btn" id="heart-alien-attack" onclick="toggleHeart('alien-attack')">🤍</button></div></div>
+    <div class="card" data-id="flip-bros"><a href="backup/games/flip-bros" target="_blank" class="card-link" onclick="handleGameClick('flip-bros')"><div class="card-title">Flip Bros</div><div class="card-desc">kick those adults!</div><div class="card-stats"><span>🖱️ <span id="clicks-flip-bros">0</span></span><span>❤️ <span id="hearts-flip-bros">0</span></span></div></a><div class="card-actions"><button class="comment-trigger" onclick="openComments('flip-bros')">💬 Chat</button><button class="heart-btn" id="heart-flip-bros" onclick="toggleHeart('flip-bros')">🤍</button></div></div>
+    <div class="card" data-id="skibidi-shooter"><a href="backup/games/skibidi-shooter" target="_blank" class="card-link" onclick="handleGameClick('skibidi-shooter')"><div class="card-title">Skibidi Shooter</div><div class="card-desc">Fight against the skibidi's!</div><div class="card-stats"><span>🖱️ <span id="clicks-skibidi-shooter">0</span></span><span>❤️ <span id="hearts-skibidi-shooter">0</span></span></div></a><div class="card-actions"><button class="comment-trigger" onclick="openComments('skibidi-shooter')">💬 Chat</button><button class="heart-btn" id="heart-skibidi-shooter" onclick="toggleHeart('skibidi-shooter')">🤍</button></div></div>
+    <div class="card" data-id="word-city"><a href="backup/games/67mango" target="_blank" class="card-link" onclick="handleGameClick('word-city')"><div class="card-title">Word City</div><div class="card-desc">get the correct words</div><div class="card-stats"><span>🖱️ <span id="clicks-word-city">0</span></span><span>❤️ <span id="hearts-word-city">0</span></span></div></a><div class="card-actions"><button class="comment-trigger" onclick="openComments('word-city')">💬 Chat</button><button class="heart-btn" id="heart-word-city" onclick="toggleHeart('word-city')">🤍</button></div></div>
+    <div class="card" data-id="wordle"><a href="backup/games/wordle-infinite" target="_blank" class="card-link" onclick="handleGameClick('wordle')"><div class="card-title">Wordle</div><div class="card-desc">guess the word, infinitely!</div><div class="card-stats"><span>🖱️ <span id="clicks-wordle">0</span></span><span>❤️ <span id="hearts-wordle">0</span></span></div></a><div class="card-actions"><button class="comment-trigger" onclick="openComments('wordle')">💬 Chat</button><button class="heart-btn" id="heart-wordle" onclick="toggleHeart('wordle')">🤍</button></div></div>
+    <div class="card" data-id="clash-tanks"><a href="backup/games/clashoftanks" target="_blank" class="card-link" onclick="handleGameClick('clash-tanks')"><div class="card-title">Clash Of Tanks</div><div class="card-desc">clash of clans rip off</div><div class="card-stats"><span>🖱️ <span id="clicks-clash-tanks">0</span></span><span>❤️ <span id="hearts-clash-tanks">0</span></span></div></a><div class="card-actions"><button class="comment-trigger" onclick="openComments('clash-tanks')">💬 Chat</button><button class="heart-btn" id="heart-clash-tanks" onclick="toggleHeart('clash-tanks')">🤍</button></div></div>
+    <div class="card" data-id="drive-mad"><a href="backup/games/drive-mad" target="_blank" class="card-link" onclick="handleGameClick('drive-mad')"><div class="card-title">Drive Mad</div><div class="card-desc">don't go too crazy now</div><div class="card-stats"><span>🖱️ <span id="clicks-drive-mad">0</span></span><span>❤️ <span id="hearts-drive-mad">0</span></span></div></a><div class="card-actions"><button class="comment-trigger" onclick="openComments('drive-mad')">💬 Chat</button><button class="heart-btn" id="heart-drive-mad" onclick="toggleHeart('drive-mad')">🤍</button></div></div>
+    <div class="card" data-id="zombie-arena"><a href="backup/games/zombie-outbreak-arena" target="_blank" class="card-link" onclick="handleGameClick('zombie-arena')"><div class="card-title">Zombie Arena</div><div class="card-desc">survive the outbreak</div><div class="card-stats"><span>🖱️ <span id="clicks-zombie-arena">0</span></span><span>❤️ <span id="hearts-zombie-arena">0</span></span></div></a><div class="card-actions"><button class="comment-trigger" onclick="openComments('zombie-arena')">💬 Chat</button><button class="heart-btn" id="heart-zombie-arena" onclick="toggleHeart('zombie-arena')">🤍</button></div></div>
+    <div class="card" data-id="odd-bot"><a href="backup/games/odd-bot-out" target="_blank" class="card-link" onclick="handleGameClick('odd-bot')"><div class="card-title">Odd Bot Out</div><div class="card-desc">can u find the real one?</div><div class="card-stats"><span>🖱️ <span id="clicks-odd-bot">0</span></span><span>❤️ <span id="hearts-odd-bot">0</span></span></div></a><div class="card-actions"><button class="comment-trigger" onclick="openComments('odd-bot')">💬 Chat</button><button class="heart-btn" id="heart-odd-bot" onclick="toggleHeart('odd-bot')">🤍</button></div></div>
 
-    <div class="card" data-id="alien-attack">
-        <a href="backup/games/game" target="_blank" class="card-link" onclick="handleGameClick('alien-attack')">
-            <div class="card-title">Alien Attack</div>
-            <div class="card-desc">this is really hard, like really</div>
-            <div class="card-stats"><span>🖱️ <span id="clicks-alien-attack">0</span></span><span>❤️ <span id="hearts-alien-attack">0</span></span></div>
-        </a>
-        <div class="card-actions">
-            <button class="comment-trigger" onclick="openComments('alien-attack')">💬 Chat</button>
-            <button class="heart-btn" id="heart-alien-attack" onclick="toggleHeart('alien-attack')">🤍</button>
-        </div>
-    </div>
+    <div class="card" data-id="ducklings-io"><a href="backup/games/ducklings-io" target="_blank" class="card-link" onclick="handleGameClick('ducklings-io')"><div class="card-title">Ducklings IO</div><div class="card-desc">save the duckies!</div><div class="card-stats"><span>🖱️ <span id="clicks-ducklings-io">0</span></span><span>❤️ <span id="hearts-ducklings-io">0</span></span></div></a><div class="card-actions"><button class="comment-trigger" onclick="openComments('ducklings-io')">💬 Chat</button><button class="heart-btn" id="heart-ducklings-io" onclick="toggleHeart('ducklings-io')">🤍</button></div></div>
+    <div class="card" data-id="geometry-dash"><a href="backup/games/geometry-dash/" target="_blank" class="card-link" onclick="handleGameClick('geometry-dash')"><div class="card-title">Geometry Dash</div><div class="card-desc">don't hit those spikes!</div><div class="card-stats"><span>🖱️ <span id="clicks-geometry-dash">0</span></span><span>❤️ <span id="hearts-geometry-dash">0</span></span></div></a><div class="card-actions"><button class="comment-trigger" onclick="openComments('geometry-dash')">💬 Chat</button><button class="heart-btn" id="heart-geometry-dash" onclick="toggleHeart('geometry-dash')">🤍</button></div></div>
+    <div class="card" data-id="musk-zuck"><a href="backup/games/muskvszuck" target="_blank" class="card-link" onclick="handleGameClick('musk-zuck')"><div class="card-title">Musk VS Zuck</div><div class="card-desc">Cage fight of the century</div><div class="card-stats"><span>🖱️ <span id="clicks-musk-zuck">0</span></span><span>❤️ <span id="hearts-musk-zuck">0</span></span></div></a><div class="card-actions"><button class="comment-trigger" onclick="openComments('musk-zuck')">💬 Chat</button><button class="heart-btn" id="heart-musk-zuck" onclick="toggleHeart('musk-zuck')">🤍</button></div></div>
+    <div class="card" data-id="soccer-stars"><a href="backup/games/soccer" target="_blank" class="card-link" onclick="handleGameClick('soccer-stars')"><div class="card-title">Soccer Stars</div><div class="card-desc">don't miss or else...</div><div class="card-stats"><span>🖱️ <span id="clicks-soccer-stars">0</span></span><span>❤️ <span id="hearts-soccer-stars">0</span></span></div></a><div class="card-actions"><button class="comment-trigger" onclick="openComments('soccer-stars')">💬 Chat</button><button class="heart-btn" id="heart-soccer-stars" onclick="toggleHeart('soccer-stars')">🤍</button></div></div>
+    <div class="card" data-id="run-3"><a href="backup/games/run" target="_blank" class="card-link" onclick="handleGameClick('run-3')"><div class="card-title">Run 3</div><div class="card-desc">run through the tunnels</div><div class="card-stats"><span>🖱️ <span id="clicks-run-3">0</span></span><span>❤️ <span id="hearts-run-3">0</span></span></div></a><div class="card-actions"><button class="comment-trigger" onclick="openComments('run-3')">💬 Chat</button><button class="heart-btn" id="heart-run-3" onclick="toggleHeart('run-3')">🤍</button></div></div>
+    <div class="card" data-id="drift-boss"><a href="backup/games/drift-boss" target="_blank" class="card-link" onclick="handleGameClick('drift-boss')"><div class="card-title">Drift Boss</div><div class="card-desc">ultimate drifting challenge</div><div class="card-stats"><span>🖱️ <span id="clicks-drift-boss">0</span></span><span>❤️ <span id="hearts-drift-boss">0</span></span></div></a><div class="card-actions"><button class="comment-trigger" onclick="openComments('drift-boss')">💬 Chat</button><button class="heart-btn" id="heart-drift-boss" onclick="toggleHeart('drift-boss')">🤍</button></div></div>
+    <div class="card" data-id="suika"><a href="backup/games/suika-game" target="_blank" class="card-link" onclick="handleGameClick('suika')"><div class="card-title">Suika</div><div class="card-desc">the viral watermelon game</div><div class="card-stats"><span>🖱️ <span id="clicks-suika">0</span></span><span>❤️ <span id="hearts-suika">0</span></span></div></a><div class="card-actions"><button class="comment-trigger" onclick="openComments('suika')">💬 Chat</button><button class="heart-btn" id="heart-suika" onclick="toggleHeart('suika')">🤍</button></div></div>
+    <div class="card" data-id="chess"><a href="backup/games/chess" target="_blank" class="card-link" onclick="handleGameClick('chess')"><div class="card-title">Chess</div><div class="card-desc">classic strategy game</div><div class="card-stats"><span>🖱️ <span id="clicks-chess">0</span></span><span>❤️ <span id="hearts-chess">0</span></span></div></a><div class="card-actions"><button class="comment-trigger" onclick="openComments('chess')">💬 Chat</button><button class="heart-btn" id="heart-chess" onclick="toggleHeart('chess')">🤍</button></div></div>
+    <div class="card" data-id="tiny-fishing"><a href="backup/games/tiny-fishing" target="_blank" class="card-link" onclick="handleGameClick('tiny-fishing')"><div class="card-title">Tiny Fishing</div><div class="card-desc">hook the big ones</div><div class="card-stats"><span>🖱️ <span id="clicks-tiny-fishing">0</span></span><span>❤️ <span id="hearts-tiny-fishing">0</span></span></div></a><div class="card-actions"><button class="comment-trigger" onclick="openComments('tiny-fishing')">💬 Chat</button><button class="heart-btn" id="heart-tiny-fishing" onclick="toggleHeart('tiny-fishing')">🤍</button></div></div>
+    <div class="card" data-id="yohoho"><a href="backup/games/yohoho-io" target="_blank" class="card-link" onclick="handleGameClick('yohoho')"><div class="card-title">YoHoHo.io</div><div class="card-desc">pirate battle royale</div><div class="card-stats"><span>🖱️ <span id="clicks-yohoho">0</span></span><span>❤️ <span id="hearts-yohoho">0</span></span></div></a><div class="card-actions"><button class="comment-trigger" onclick="openComments('yohoho')">💬 Chat</button><button class="heart-btn" id="heart-yohoho" onclick="toggleHeart('yohoho')">🤍</button></div></div>
 
-    <div class="card" data-id="flip-bros">
-        <a href="backup/games/flip-bros" target="_blank" class="card-link" onclick="handleGameClick('flip-bros')">
-            <div class="card-title">Flip Bros</div>
-            <div class="card-desc">kick those adults!</div>
-            <div class="card-stats"><span>🖱️ <span id="clicks-flip-bros">0</span></span><span>❤️ <span id="hearts-flip-bros">0</span></span></div>
-        </a>
-        <div class="card-actions">
-            <button class="comment-trigger" onclick="openComments('flip-bros')">💬 Chat</button>
-            <button class="heart-btn" id="heart-flip-bros" onclick="toggleHeart('flip-bros')">🤍</button>
-        </div>
-    </div>
+    <div class="card" data-id="retro-bowl"><a href="backup/games/retro-bowl" target="_blank" class="card-link" onclick="handleGameClick('retro-bowl')"><div class="card-title">Retro Bowl</div><div class="card-desc">football season is here</div><div class="card-stats"><span>🖱️ <span id="clicks-retro-bowl">0</span></span><span>❤️ <span id="hearts-retro-bowl">0</span></span></div></a><div class="card-actions"><button class="comment-trigger" onclick="openComments('retro-bowl')">💬 Chat</button><button class="heart-btn" id="heart-retro-bowl" onclick="toggleHeart('retro-bowl')">🤍</button></div></div>
+    <div class="card" data-id="where-cat"><a href="games/where-is-my-cat" target="_blank" class="card-link" onclick="handleGameClick('where-cat')"><div class="card-title">Where Is My Cat?</div><div class="card-desc">don't let the dog catch you</div><div class="card-stats"><span>🖱️ <span id="clicks-where-cat">0</span></span><span>❤️ <span id="hearts-where-cat">0</span></span></div></a><div class="card-actions"><button class="comment-trigger" onclick="openComments('where-cat')">💬 Chat</button><button class="heart-btn" id="heart-where-cat" onclick="toggleHeart('where-cat')">🤍</button></div></div>
+    <div class="card" data-id="snake-io"><a href="backup/games/snake-io" target="_blank" class="card-link" onclick="handleGameClick('snake-io')"><div class="card-title">Snake IO</div><div class="card-desc">grow your snake</div><div class="card-stats"><span>🖱️ <span id="clicks-snake-io">0</span></span><span>❤️ <span id="hearts-snake-io">0</span></span></div></a><div class="card-actions"><button class="comment-trigger" onclick="openComments('snake-io')">💬 Chat</button><button class="heart-btn" id="heart-snake-io" onclick="toggleHeart('snake-io')">🤍</button></div></div>
+    <div class="card" data-id="bloxd-io"><a href="backup/games/bloxd-io" target="_blank" class="card-link" onclick="handleGameClick('bloxd-io')"><div class="card-title">Bloxd IO</div><div class="card-desc">multiplayer parkour & building</div><div class="card-stats"><span>🖱️ <span id="clicks-bloxd-io">0</span></span><span>❤️ <span id="hearts-bloxd-io">0</span></span></div></a><div class="card-actions"><button class="comment-trigger" onclick="openComments('bloxd-io')">💬 Chat</button><button class="heart-btn" id="heart-bloxd-io" onclick="toggleHeart('bloxd-io')">🤍</button></div></div>
+    <div class="card" data-id="minecraft"><a href="backup/games/minecraft" target="_blank" class="card-link" onclick="handleGameClick('minecraft')"><div class="card-title">Minecraft</div><div class="card-desc">totally real minecraft</div><div class="card-stats"><span>🖱️ <span id="clicks-minecraft">0</span></span><span>❤️ <span id="hearts-minecraft">0</span></span></div></a><div class="card-actions"><button class="comment-trigger" onclick="openComments('minecraft')">💬 Chat</button><button class="heart-btn" id="heart-minecraft" onclick="toggleHeart('minecraft')">🤍</button></div></div>
+    <div class="card" data-id="paper-io"><a href="backup/games/paper-2-io" target="_blank" class="card-link" onclick="handleGameClick('paper-io')"><div class="card-title">Paper IO</div><div class="card-desc">conquer the paper world</div><div class="card-stats"><span>🖱️ <span id="clicks-paper-io">0</span></span><span>❤️ <span id="hearts-paper-io">0</span></span></div></a><div class="card-actions"><button class="comment-trigger" onclick="openComments('paper-io')">💬 Chat</button><button class="heart-btn" id="heart-paper-io" onclick="toggleHeart('paper-io')">🤍</button></div></div>
+    <div class="card" data-id="drive-4x4"><a href="backup/games/drive" target="_blank" class="card-link" onclick="handleGameClick('drive-4x4')"><div class="card-title">Drive 4X4</div><div class="card-desc">off-road driving fun</div><div class="card-stats"><span>🖱️ <span id="clicks-drive-4x4">0</span></span><span>❤️ <span id="hearts-drive-4x4">0</span></span></div></a><div class="card-actions"><button class="comment-trigger" onclick="openComments('drive-4x4')">💬 Chat</button><button class="heart-btn" id="heart-drive-4x4" onclick="toggleHeart('drive-4x4')">🤍</button></div></div>
+    <div class="card" data-id="gta"><a href="backup/games/gta" target="_blank" class="card-link" onclick="handleGameClick('gta')"><div class="card-title">GTA</div><div class="card-desc">grand theft auto</div><div class="card-stats"><span>🖱️ <span id="clicks-gta">0</span></span><span>❤️ <span id="hearts-gta">0</span></span></div></a><div class="card-actions"><button class="comment-trigger" onclick="openComments('gta')">💬 Chat</button><button class="heart-btn" id="heart-gta" onclick="toggleHeart('gta')">🤍</button></div></div>
+    <div class="card" data-id="uno"><a href="backup/games/uno" target="_blank" class="card-link" onclick="handleGameClick('uno')"><div class="card-title">Uno</div><div class="card-desc">uno, doce, tres...</div><div class="card-stats"><span>🖱️ <span id="clicks-uno">0</span></span><span>❤️ <span id="hearts-uno">0</span></span></div></a><div class="card-actions"><button class="comment-trigger" onclick="openComments('uno')">💬 Chat</button><button class="heart-btn" id="heart-uno" onclick="toggleHeart('uno')">🤍</button></div></div>
+    <div class="card" data-id="tank-attack"><a href="backup/games/tank-attack/" target="_blank" class="card-link" onclick="handleGameClick('tank-attack')"><div class="card-title">Tank Attack</div><div class="card-desc">blind tank battles</div><div class="card-stats"><span>🖱️ <span id="clicks-tank-attack">0</span></span><span>❤️ <span id="hearts-tank-attack">0</span></span></div></a><div class="card-actions"><button class="comment-trigger" onclick="openComments('tank-attack')">💬 Chat</button><button class="heart-btn" id="heart-tank-attack" onclick="toggleHeart('tank-attack')">🤍</button></div></div>
 
-    <div class="card" data-id="skibidi-shooter">
-        <a href="backup/games/skibidi-shooter" target="_blank" class="card-link" onclick="handleGameClick('skibidi-shooter')">
-            <div class="card-title">Skibidi Shooter</div>
-            <div class="card-desc">Fight against the skibidi's!</div>
-            <div class="card-stats"><span>🖱️ <span id="clicks-skibidi-shooter">0</span></span><span>❤️ <span id="hearts-skibidi-shooter">0</span></span></div>
-        </a>
-        <div class="card-actions">
-            <button class="comment-trigger" onclick="openComments('skibidi-shooter')">💬 Chat</button>
-            <button class="heart-btn" id="heart-skibidi-shooter" onclick="toggleHeart('skibidi-shooter')">🤍</button>
-        </div>
-    </div>
+    <div class="card" data-id="redhot"><a href="backup/games/redhot" target="_blank" class="card-link" onclick="handleGameClick('redhot')"><div class="card-title">Redhot</div><div class="card-desc">slow motion action</div><div class="card-stats"><span>🖱️ <span id="clicks-redhot">0</span></span><span>❤️ <span id="hearts-redhot">0</span></span></div></a><div class="card-actions"><button class="comment-trigger" onclick="openComments('redhot')">💬 Chat</button><button class="heart-btn" id="heart-redhot" onclick="toggleHeart('redhot')">🤍</button></div></div>
+    <div class="card" data-id="redhot-2"><a href="backup/games/redhot-2/" target="_blank" class="card-link" onclick="handleGameClick('redhot-2')"><div class="card-title">Redhot 2</div><div class="card-desc">more slow mo heat</div><div class="card-stats"><span>🖱️ <span id="clicks-redhot-2">0</span></span><span>❤️ <span id="hearts-redhot-2">0</span></span></div></a><div class="card-actions"><button class="comment-trigger" onclick="openComments('redhot-2')">💬 Chat</button><button class="heart-btn" id="heart-redhot-2" onclick="toggleHeart('redhot-2')">🤍</button></div></div>
+    <div class="card" data-id="wheelie-bike"><a href="backup/games/wheelie-bike" target="_blank" class="card-link" onclick="handleGameClick('wheelie-bike')"><div class="card-title">Wheelie Bike</div><div class="card-desc">hold that wheelie</div><div class="card-stats"><span>🖱️ <span id="clicks-wheelie-bike">0</span></span><span>❤️ <span id="hearts-wheelie-bike">0</span></span></div></a><div class="card-actions"><button class="comment-trigger" onclick="openComments('wheelie-bike')">💬 Chat</button><button class="heart-btn" id="heart-wheelie-bike" onclick="toggleHeart('wheelie-bike')">🤍</button></div></div>
+    <div class="card" data-id="truck-loader"><a href="backup/games/trucks" target="_blank" class="card-link" onclick="handleGameClick('truck-loader')"><div class="card-title">Truck Loader</div><div class="card-desc">load 'em up!</div><div class="card-stats"><span>🖱️ <span id="clicks-truck-loader">0</span></span><span>❤️ <span id="hearts-truck-loader">0</span></span></div></a><div class="card-actions"><button class="comment-trigger" onclick="openComments('truck-loader')">💬 Chat</button><button class="heart-btn" id="heart-truck-loader" onclick="toggleHeart('truck-loader')">🤍</button></div></div>
+    <div class="card" data-id="thumb-wars"><a href="backup/games/thumb-wars/" target="_blank" class="card-link" onclick="handleGameClick('thumb-wars')"><div class="card-title">Thumb Wars</div><div class="card-desc">thumb wrestling fun</div><div class="card-stats"><span>🖱️ <span id="clicks-thumb-wars">0</span></span><span>❤️ <span id="hearts-thumb-wars">0</span></span></div></a><div class="card-actions"><button class="comment-trigger" onclick="openComments('thumb-wars')">💬 Chat</button><button class="heart-btn" id="heart-thumb-wars" onclick="toggleHeart('thumb-wars')">🤍</button></div></div>
+    <div class="card" data-id="snow-battle"><a href="backup/games/snow-io/" target="_blank" class="card-link" onclick="handleGameClick('snow-battle')"><div class="card-title">Snow Battle</div><div class="card-desc">snowball io fight</div><div class="card-stats"><span>🖱️ <span id="clicks-snow-battle">0</span></span><span>❤️ <span id="hearts-snow-battle">0</span></span></div></a><div class="card-actions"><button class="comment-trigger" onclick="openComments('snow-battle')">💬 Chat</button><button class="heart-btn" id="heart-snow-battle" onclick="toggleHeart('snow-battle')">🤍</button></div></div>
+    <div class="card" data-id="wizard-mike"><a href="backup/games/wizard-mike/" target="_blank" class="card-link" onclick="handleGameClick('wizard-mike')"><div class="card-title">Wizard Mike</div><div class="card-desc">magic and mayhem</div><div class="card-stats"><span>🖱️ <span id="clicks-wizard-mike">0</span></span><span>❤️ <span id="hearts-wizard-mike">0</span></span></div></a><div class="card-actions"><button class="comment-trigger" onclick="openComments('wizard-mike')">💬 Chat</button><button class="heart-btn" id="heart-wizard-mike" onclick="toggleHeart('wizard-mike')">🤍</button></div></div>
+    <div class="card" data-id="eparkour"><a href="backup/games/eparkour/" target="_blank" class="card-link" onclick="handleGameClick('eparkour')"><div class="card-title">eParkour</div><div class="card-desc">hardcore parkour</div><div class="card-stats"><span>🖱️ <span id="clicks-eparkour">0</span></span><span>❤️ <span id="hearts-eparkour">0</span></span></div></a><div class="card-actions"><button class="comment-trigger" onclick="openComments('eparkour')">💬 Chat</button><button class="heart-btn" id="heart-eparkour" onclick="toggleHeart('eparkour')">🤍</button></div></div>
+    <div class="card" data-id="balloons"><a href="backup/games/ballons-io/" target="_blank" class="card-link" onclick="handleGameClick('balloons')"><div class="card-title">Balloons IO</div><div class="card-desc">pop those balloons!</div><div class="card-stats"><span>🖱️ <span id="clicks-balloons">0</span></span><span>❤️ <span id="hearts-balloons">0</span></span></div></a><div class="card-actions"><button class="comment-trigger" onclick="openComments('balloons')">💬 Chat</button><button class="heart-btn" id="heart-balloons" onclick="toggleHeart('balloons')">🤍</button></div></div>
+</div>
 
-    <div class="card" data-id="word-city">
-        <a href="backup/games/67mango" target="_blank" class="card-link" onclick="handleGameClick('word-city')">
-            <div class="card-title">Word City</div>
-            <div class="card-desc">get the correct words</div>
-            <div class="card-stats"><span>🖱️ <span id="clicks-word-city">0</span></span><span>❤️ <span id="hearts-word-city">0</span></span></div>
-        </a>
-        <div class="card-actions">
-            <button class="comment-trigger" onclick="openComments('word-city')">💬 Chat</button>
-            <button class="heart-btn" id="heart-word-city" onclick="toggleHeart('word-city')">🤍</button>
-        </div>
-    </div>
-
-    <div class="card" data-id="wordle">
-        <a href="backup/games/wordle-infinite" target="_blank" class="card-link" onclick="handleGameClick('wordle')">
-            <div class="card-title">Wordle</div>
-            <div class="card-desc">guess the word, infinitely!</div>
-            <div class="card-stats"><span>🖱️ <span id="clicks-wordle">0</span></span><span>❤️ <span id="hearts-wordle">0</span></span></div>
-        </a>
-        <div class="card-actions">
-            <button class="comment-trigger" onclick="openComments('wordle')">💬 Chat</button>
-            <button class="heart-btn" id="heart-wordle" onclick="toggleHeart('wordle')">🤍</button>
-        </div>
-    </div>
-
-    <div class="card" data-id="clash-tanks">
-        <a href="backup/games/clashoftanks" target="_blank" class="card-link" onclick="handleGameClick('clash-tanks')">
-            <div class="card-title">Clash Of Tanks</div>
-            <div class="card-desc">clash of clans rip off</div>
-            <div class="card-stats"><span>🖱️ <span id="clicks-clash-tanks">0</span></span><span>❤️ <span id="hearts-clash-tanks">0</span></span></div>
-        </a>
-        <div class="card-actions">
-            <button class="comment-trigger" onclick="openComments('clash-tanks')">💬 Chat</button>
-            <button class="heart-btn" id="heart-clash-tanks" onclick="toggleHeart('clash-tanks')">🤍</button>
-        </div>
-    </div>
-
-    <div class="card" data-id="drive-mad">
-        <a href="backup/games/drive-mad" target="_blank" class="card-link" onclick="handleGameClick('drive-mad')">
-            <div class="card-title">Drive Mad</div>
-            <div class="card-desc">don't go too crazy now</div>
-            <div class="card-stats"><span>🖱️ <span id="clicks-drive-mad">0</span></span><span>❤️ <span id="hearts-drive-mad">0</span></span></div>
-        </a>
-        <div class="card-actions">
-            <button class="comment-trigger" onclick="openComments('drive-mad')">💬 Chat</button>
-            <button class="heart-btn" id="heart-drive-mad" onclick="toggleHeart('drive-mad')">🤍</button>
-        </div>
-    </div>
-
-    <div class="card" data-id="zombie-arena">
-        <a href="backup/games/zombie-outbreak-arena" target="_blank" class="card-link" onclick="handleGameClick('zombie-arena')">
-            <div class="card-title">Zombie Arena</div>
-            <div class="card-desc">survive the outbreak</div>
-            <div class="card-stats"><span>🖱️ <span id="clicks-zombie-arena">0</span></span><span>❤️ <span id="hearts-zombie-arena">0</span></span></div>
-        </a>
-        <div class="card-actions">
-            <button class="comment-trigger" onclick="openComments('zombie-arena')">💬 Chat</button>
-            <button class="heart-btn" id="heart-zombie-arena" onclick="toggleHeart('zombie-arena')">🤍</button>
-        </div>
-    </div>
-
-    <div class="card" data-id="odd-bot">
-        <a href="backup/games/odd-bot-out" target="_blank" class="card-link" onclick="handleGameClick('odd-bot')">
-            <div class="card-title">Odd Bot Out</div>
-            <div class="card-desc">can u find the real one?</div>
-            <div class="card-stats"><span>🖱️ <span id="clicks-odd-bot">0</span></span><span>❤️ <span id="hearts-odd-bot">0</span></span></div>
-        </a>
-        <div class="card-actions">
-            <button class="comment-trigger" onclick="openComments('odd-bot')">💬 Chat</button>
-            <button class="heart-btn" id="heart-odd-bot" onclick="toggleHeart('odd-bot')">🤍</button>
-        </div>
-    </div>
-
-    <div class="card" data-id="ducklings-io">
-        <a href="backup/games/ducklings-io" target="_blank" class="card-link" onclick="handleGameClick('ducklings-io')">
-            <div class="card-title">Ducklings IO</div>
-            <div class="card-desc">save the duckies!</div>
-            <div class="card-stats"><span>🖱️ <span id="clicks-ducklings-io">0</span></span><span>❤️ <span id="hearts-ducklings-io">0</span></span></div>
-        </a>
-        <div class="card-actions">
-            <button class="comment-trigger" onclick="openComments('ducklings-io')">💬 Chat</button>
-            <button class="heart-btn" id="heart-ducklings-io" onclick="toggleHeart('ducklings-io')">🤍</button>
-        </div>
-    </div>
-
-    <div class="card" data-id="geometry-dash">
-        <a href="backup/games/geometry-dash/" target="_blank" class="card-link" onclick="handleGameClick('geometry-dash')">
-            <div class="card-title">Geometry Dash</div>
-            <div class="card-desc">don't hit those spikes!</div>
-            <div class="card-stats"><span>🖱️ <span id="clicks-geometry-dash">0</span></span><span>❤️ <span id="hearts-geometry-dash">0</span></span></div>
-        </a>
-        <div class="card-actions">
-            <button class="comment-trigger" onclick="openComments('geometry-dash')">💬 Chat</button>
-            <button class="heart-btn" id="heart-geometry-dash" onclick="toggleHeart('geometry-dash')">🤍</button>
-        </div>
-    </div>
-
-    <div class="card" data-id="musk-zuck">
-        <a href="backup/games/muskvszuck" target="_blank" class="card-link" onclick="handleGameClick('musk-zuck')">
-            <div class="card-title">Musk VS Zuck</div>
-            <div class="card-desc">Cage fight of the century</div>
-            <div class="card-stats"><span>🖱️ <span id="clicks-musk-zuck">0</span></span><span>❤️ <span id="hearts-musk-zuck">0</span></span></div>
-        </a>
-        <div class="card-actions">
-            <button class="comment-trigger" onclick="openComments('musk-zuck')">💬 Chat</button>
-            <button class="heart-btn" id="heart-musk-zuck" onclick="toggleHeart('musk-zuck')">🤍</button>
-        </div>
-    </div>
-
-    <div class="card" data-id="soccer-stars">
-        <a href="backup/games/soccer" target="_blank" class="card-link" onclick="handleGameClick('soccer-stars')">
-            <div class="card-title">Soccer Stars</div>
-            <div class="card-desc">don't miss or else...</div>
-            <div class="card-stats"><span>🖱️ <span id="clicks-soccer-stars">0</span></span><span>❤️ <span id="hearts-soccer-stars">0</span></span></div>
-        </a>
-        <div class="card-actions">
-            <button class="comment-trigger" onclick="openComments('soccer-stars')">💬 Chat</button>
-            <button class="heart-btn" id="heart-soccer-stars" onclick="toggleHeart('soccer-stars')">🤍</button>
-        </div>
-    </div>
-
-    <div class="card" data-id="run-3">
-        <a href="backup/games/run" target="_blank" class="card-link" onclick="handleGameClick('run-3')">
-            <div class="card-title">Run 3</div>
-            <div class="card-desc">run through the tunnels</div>
-            <div class="card-stats"><span>🖱️ <span id="clicks-run-3">0</span></span><span>❤️ <span id="hearts-run-3">0</span></span></div>
-        </a>
-        <div class="card-actions">
-            <button class="comment-trigger" onclick="openComments('run-3')">💬 Chat</button>
-            <button class="heart-btn" id="heart-run-3" onclick="toggleHeart('run-3')">🤍</button>
-        </div>
-    </div>
-
-    <div class="card" data-id="drift-boss">
-        <a href="backup/games/drift-boss" target="_blank" class="card-link" onclick="handleGameClick('drift-boss')">
-            <div class="card-title">Drift Boss</div>
-            <div class="card-desc">ultimate drifting challenge</div>
-            <div class="card-stats"><span>🖱️ <span id="clicks-drift-boss">0</span></span><span>❤️ <span id="hearts-drift-boss">0</span></span></div>
-        </a>
-        <div class="card-actions">
-            <button class="comment-trigger" onclick="openComments('drift-boss')">💬 Chat</button>
-            <button class="heart-btn" id="heart-drift-boss" onclick="toggleHeart('drift-boss')">🤍</button>
-        </div>
-    </div>
-
-    <div class="card" data-id="suika">
-        <a href="backup/games/suika-game" target="_blank" class="card-link" onclick="handleGameClick('suika')">
-            <div class="card-title">Suika</div>
-            <div class="card-desc">the viral watermelon game</div>
-            <div class="card-stats"><span>🖱️ <span id="clicks-suika">0</span></span><span>❤️ <span id="hearts-suika">0</span></span></div>
-        </a>
-        <div class="card-actions">
-            <button class="comment-trigger" onclick="openComments('suika')">💬 Chat</button>
-            <button class="heart-btn" id="heart-suika" onclick="toggleHeart('suika')">🤍</button>
-        </div>
-    </div>
-
-    <div class="card" data-id="chess">
-        <a href="backup/games/chess" target="_blank" class="card-link" onclick="handleGameClick('chess')">
-            <div class="card-title">Chess</div>
-            <div class="card-desc">classic strategy game</div>
-            <div class="card-stats"><span>🖱️ <span id="clicks-chess">0</span></span><span>❤️ <span id="hearts-chess">0</span></span></div>
-        </a>
-        <div class="card-actions">
-            <button class="comment-trigger" onclick="openComments('chess')">💬 Chat</button>
-            <button class="heart-btn" id="heart-chess" onclick="toggleHeart('chess')">🤍</button>
-        </div>
-    </div>
-
-    <div class="card" data-id="tiny-fishing">
-        <a href="backup/games/tiny-fishing" target="_blank" class="card-link" onclick="handleGameClick('tiny-fishing')">
-            <div class="card-title">Tiny Fishing</div>
-            <div class="card-desc">hook the big ones</div>
-            <div class="card-stats"><span>🖱️ <span id="clicks-tiny-fishing">0</span></span><span>❤️ <span id="hearts-tiny-fishing">0</span></span></div>
-        </a>
-        <div class="card-actions">
-            <button class="comment-trigger" onclick="openComments('tiny-fishing')">💬 Chat</button>
-            <button class="heart-btn" id="heart-tiny-fishing" onclick="toggleHeart('tiny-fishing')">🤍</button>
-        </div>
-    </div>
-
-    <div class="card" data-id="yohoho">
-        <a href="backup/games/yohoho-io" target="_blank" class="card-link" onclick="handleGameClick('yohoho')">
-            <div class="card-title">YoHoHo.io</div>
-            <div class="card-desc">pirate battle royale</div>
-            <div class="card-stats"><span>🖱️ <span id="clicks-yohoho">0</span></span><span>❤️ <span id="hearts-yohoho">0</span></span></div>
-        </a>
-        <div class="card-actions">
-            <button class="comment-trigger" onclick="openComments('yohoho')">💬 Chat</button>
-            <button class="heart-btn" id="heart-yohoho" onclick="toggleHeart('yohoho')">🤍</button>
-        </div>
-    </div>
-
-    <div class="card" data-id="retro-bowl">
-        <a href="backup/games/retro-bowl" target="_blank" class="card-link" onclick="handleGameClick('retro-bowl')">
-            <div class="card-title">Retro Bowl</div>
-            <div class="card-desc">football season is here</div>
-            <div class="card-stats"><span>🖱️ <span id="clicks-retro-bowl">0</span></span><span>❤️ <span id="hearts-retro-bowl">0</span></span></div>
-        </a>
-        <div class="card-actions">
-            <button class="comment-trigger" onclick="openComments('retro-bowl')">💬 Chat</button>
-            <button class="heart-btn" id="heart-retro-bowl" onclick="toggleHeart('retro-bowl')">🤍</button>
-        </div>
-    </div>
-
-    <div class="card" data-id="where-cat">
-        <a href="games/where-is-my-cat" target="_blank" class="card-link" onclick="handleGameClick('where-cat')">
-            <div class="card-title">Where Is My Cat?</div>
-            <div class="card-desc">don't let the dog catch you</div>
-            <div class="card-stats"><span>🖱️ <span id="clicks-where-cat">0</span></span><span>❤️ <span id="hearts-where-cat">0</span></span></div>
-        </a>
-        <div class="card-actions">
-            <button class="comment-trigger" onclick="openComments('where-cat')">💬 Chat</button>
-            <button class="heart-btn" id="heart-where-cat" onclick="toggleHeart('where-cat')">🤍</button>
-        </div>
-    </div>
-
-    <div class="card" data-id="snake-io">
-        <a href="backup/games/snake-io" target="_blank" class="card-link" onclick="handleGameClick('snake-io')">
-            <div class="card-title">Snake IO</div>
-            <div class="card-desc">grow your snake</div>
-            <div class="card-stats"><span>🖱️ <span id="clicks-snake-io">0</span></span><span>❤️ <span id="hearts-snake-io">0</span></span></div>
-        </a>
-        <div class="card-actions">
-            <button class="comment-trigger" onclick="openComments('snake-io')">💬 Chat</button>
-            <button class="heart-btn" id="heart-snake-io" onclick="toggleHeart('snake-io')">🤍</button>
-        </div>
-    </div>
-
-    <div class="card" data-id="bloxd-io">
-        <a href="backup/games/bloxd-io" target="_blank" class="card-link" onclick="handleGameClick('bloxd-io')">
-            <div class="card-title">Bloxd IO</div>
-            <div class="card-desc">multiplayer parkour & building</div>
-            <div class="card-stats"><span>🖱️ <span id="clicks-bloxd-io">0</span></span><span>❤️ <span id="hearts-bloxd-io">0</span></span></div>
-        </a>
-        <div class="card-actions">
-            <button class="comment-trigger" onclick="openComments('bloxd-io')">💬 Chat</button>
-            <button class="heart-btn" id="heart-bloxd-io" onclick="toggleHeart('bloxd-io')">🤍</button>
-        </div>
-    </div>
-
-    <div class="card" data-id="minecraft">
-        <a href="backup/games/minecraft" target="_blank" class="card-link" onclick="handleGameClick('minecraft')">
-            <div class="card-title">Minecraft</div>
-            <div class="card-desc">totally real minecraft</div>
-            <div class="card-stats"><span>🖱️ <span id="clicks-minecraft">0</span></span><span>❤️ <span id="hearts-minecraft">0</span></span></div>
-        </a>
-        <div class="card-actions">
-            <button class="comment-trigger" onclick="openComments('minecraft')">💬 Chat</button>
-            <button class="heart-btn" id="heart-minecraft" onclick="toggleHeart('minecraft')">🤍</button>
-        </div>
-    </div>
-
-    <div class="card" data-id="paper-io">
-        <a href="backup/games/paper-2-io" target="_blank" class="card-link" onclick="handleGameClick('paper-io')">
-            <div class="card-title">Paper IO</div>
-            <div class="card-desc">conquer the paper world</div>
-            <div class="card-stats"><span>🖱️ <span id="clicks-paper-io">0</span></span><span>❤️ <span id="hearts-paper-io">0</span></span></div>
-        </a>
-        <div class="card-actions">
-            <button class="comment-trigger" onclick="openComments('paper-io')">💬 Chat</button>
-            <button class="heart-btn" id="heart-paper-io" onclick="toggleHeart('paper-io')">🤍</button>
-        </div>
-    </div>
-
-    <div class="card" data-id="drive-4x4">
-        <a href="backup/games/drive" target="_blank" class="card-link" onclick="handleGameClick('drive-4x4')">
-            <div class="card-title">Drive 4X4</div>
-            <div class="card-desc">off-road driving fun</div>
-            <div class="card-stats"><span>🖱️ <span id="clicks-drive-4x4">0</span></span><span>❤️ <span id="hearts-drive-4x4">0</span></span></div>
-        </a>
-        <div class="card-actions">
-            <button class="comment-trigger" onclick="openComments('drive-4x4')">💬 Chat</button>
-            <button class="heart-btn" id="heart-drive-4x4" onclick="toggleHeart('drive-4x4')">🤍</button>
-        </div>
-    </div>
-
-    <div class="card" data-id="gta">
-        <a href="backup/games/gta" target="_blank" class="card-link" onclick="handleGameClick('gta')">
-            <div class="card-title">GTA</div>
-            <div class="card-desc">grand theft auto</div>
-            <div class="card-stats"><span>🖱️ <span id="clicks-gta">0</span></span><span>❤️ <span id="hearts-gta">0</span></span></div>
-        </a>
-        <div class="card-actions">
-            <button class="comment-trigger" onclick="openComments('gta')">💬 Chat</button>
-            <button class="heart-btn" id="heart-gta" onclick="toggleHeart('gta')">🤍</button>
-        </div>
-    </div>
-
-    <div class="card" data-id="uno">
-        <a href="backup/games/uno" target="_blank" class="card-link" onclick="handleGameClick('uno')">
-            <div class="card-title">Uno</div>
-            <div class="card-desc">uno, doce, tres...</div>
-            <div class="card-stats"><span>🖱️ <span id="clicks-uno">0</span></span><span>❤️ <span id="hearts-uno">0</span></span></div>
-        </a>
-        <div class="card-actions">
-            <button class="comment-trigger" onclick="openComments('uno')">💬 Chat</button>
-            <button class="heart-btn" id="heart-uno" onclick="toggleHeart('uno')">🤍</button>
-        </div>
-    </div>
-
-    <div class="card" data-id="tank-attack">
-        <a href="backup/games/tank-attack/" target="_blank" class="card-link" onclick="handleGameClick('tank-attack')">
-            <div class="card-title">Tank Attack</div>
-            <div class="card-desc">blind tank battles</div>
-            <div class="card-stats"><span>🖱️ <span id="clicks-tank-attack">0</span></span><span>❤️ <span id="hearts-tank-attack">0</span></span></div>
-        </a>
-        <div class="card-actions">
-            <button class="comment-trigger" onclick="openComments('tank-attack')">💬 Chat</button>
-            <button class="heart-btn" id="heart-tank-attack" onclick="toggleHeart('tank-attack')">🤍</button>
-        </div>
-    </div>
-
-    <div class="card" data-id="redhot">
-        <a href="backup/games/redhot" target="_blank" class="card-link" onclick="handleGameClick('redhot')">
-            <div class="card-title">Redhot</div>
-            <div class="card-desc">slow motion action</div>
-            <div class="card-stats"><span>🖱️ <span id="clicks-redhot">0</span></span><span>❤️ <span id="hearts-redhot">0</span></span></div>
-        </a>
-        <div class="card-actions">
-            <button class="comment-trigger" onclick="openComments('redhot')">💬 Chat</button>
-            <button class="heart-btn" id="heart-redhot" onclick="toggleHeart('redhot')">🤍</button>
-        </div>
-    </div>
-
-    <div class="card" data-id="redhot-2">
-        <a href="backup/games/redhot-2/" target="_blank" class="card-link" onclick="handleGameClick('redhot-2')">
-            <div class="card-title">Redhot 2</div>
-            <div class="card-desc">more slow mo heat</div>
-            <div class="card-stats"><span>🖱️ <span id="clicks-redhot-2">0</span></span><span>❤️ <span id="hearts-redhot-2">0</span></span></div>
-        </a>
-        <div class="card-actions">
-            <button class="comment-trigger" onclick="openComments('redhot-2')">💬 Chat</button>
-            <button class="heart-btn" id="heart-redhot-2" onclick="toggleHeart('redhot-2')">🤍</button>
-        </div>
-    </div>
-
-    <div class="card" data-id="wheelie-bike">
-        <a href="backup/games/wheelie-bike" target="_blank" class="card-link" onclick="handleGameClick('wheelie-bike')">
-            <div class="card-title">Wheelie Bike</div>
-            <div class="card-desc">hold that wheelie</div>
-            <div class="card-stats"><span>🖱️ <span id="clicks-wheelie-bike">0</span></span><span>❤️ <span id="hearts-wheelie-bike">0</span></span></div>
-        </a>
-        <div class="card-actions">
-            <button class="comment-trigger" onclick="openComments('wheelie-bike')">💬 Chat</button>
-            <button class="heart-btn" id="heart-wheelie-bike" onclick="toggleHeart('wheelie-bike')">🤍</button>
-        </div>
-    </div>
-
-    <div class="card" data-id="truck-loader">
-        <a href="backup/games/trucks" target="_blank" class="card-link" onclick="handleGameClick('truck-loader')">
-            <div class="card-title">Truck Loader</div>
-            <div class="card-desc">load 'em up!</div>
-            <div class="card-stats"><span>🖱️ <span id="clicks-truck-loader">0</span></span><span>❤️ <span id="hearts-truck-loader">0</span></span></div>
-        </a>
-        <div class="card-actions">
-            <button class="comment-trigger" onclick="openComments('truck-loader')">💬 Chat</button>
-            <button class="heart-btn" id="heart-truck-loader" onclick="toggleHeart('truck-loader')">🤍</button>
-        </div>
-    </div>
-
-    <div class="card" data-id="thumb-wars">
-        <a href="backup/games/thumb-wars/" target="_blank" class="card-link" onclick="handleGameClick('thumb-wars')">
-            <div class="card-title">Thumb Wars</div>
-            <div class="card-desc">thumb wrestling fun</div>
-            <div class="card-stats"><span>🖱️ <span id="clicks-thumb-wars">0</span></span><span>❤️ <span id="hearts-thumb-wars">0</span></span></div>
-        </a>
-        <div class="card-actions">
-            <button class="comment-trigger" onclick="openComments('thumb-wars')">💬 Chat</button>
-            <button class="heart-btn" id="heart-thumb-wars" onclick="toggleHeart('thumb-wars')">🤍</button>
-        </div>
-    </div>
-
-    <div class="card" data-id="snow-battle">
-        <a href="backup/games/snow-io/" target="_blank" class="card-link" onclick="handleGameClick('snow-battle')">
-            <div class="card-title">Snow Battle</div>
-            <div class="card-desc">snowball io fight</div>
-            <div class="card-stats"><span>🖱️ <span id="clicks-snow-battle">0</span></span><span>❤️ <span id="hearts-snow-battle">0</span></span></div>
-        </a>
-        <div class="card-actions">
-            <button class="comment-trigger" onclick="openComments('snow-battle')">💬 Chat</button>
-            <button class="heart-btn" id="heart-snow-battle" onclick="toggleHeart('snow-battle')">🤍</button>
-        </div>
-    </div>
-
-    <div class="card" data-id="wizard-mike">
-        <a href="backup/games/wizard-mike/" target="_blank" class="card-link" onclick="handleGameClick('wizard-mike')">
-            <div class="card-title">Wizard Mike</div>
-            <div class="card-desc">magic and mayhem</div>
-            <div class="card-stats"><span>🖱️ <span id="clicks-wizard-mike">0</span></span><span>❤️ <span id="hearts-wizard-mike">0</span></span></div>
-        </a>
-        <div class="card-actions">
-            <button class="comment-trigger" onclick="openComments('wizard-mike')">💬 Chat</button>
-            <button class="heart-btn" id="heart-wizard-mike" onclick="toggleHeart('wizard-mike')">🤍</button>
-        </div>
-    </div>
-
-    <div class="card" data-id="eparkour">
-        <a href="backup/games/eparkour/" target="_blank" class="card-link" onclick="handleGameClick('eparkour')">
-            <div class="card-title">eParkour</div>
-            <div class="card-desc">hardcore parkour</div>
-            <div class="card-stats"><span>🖱️ <span id="clicks-eparkour">0</span></span><span>❤️ <span id="hearts-eparkour">0</span></span></div>
-        </a>
-        <div class="card-actions">
-            <button class="comment-trigger" onclick="openComments('eparkour')">💬 Chat</button>
-            <button class="heart-btn" id="heart-eparkour" onclick="toggleHeart('eparkour')">🤍</button>
-        </div>
-    </div>
-
-    <div class="card" data-id="balloons">
-        <a href="backup/games/ballons-io/" target="_blank" class="card-link" onclick="handleGameClick('balloons')">
-            <div class="card-title">Baloons</div>
-            <div class="card-desc">pop the balloons</div>
-            <div class="card-stats"><span>🖱️ <span id="clicks-balloons">0</span></span><span>❤️ <span id="hearts-balloons">0</span></span></div>
-        </a>
-        <div class="card-actions">
-            <button class="comment-trigger" onclick="openComments('balloons')">💬 Chat</button>
-            <button class="heart-btn" id="heart-balloons" onclick="toggleHeart('balloons')">🤍</button>
-        </div>
-    </div>
+<div class="load-more-container">
+    <button id="loadMoreBtn" onclick="showMore()">Show More Games</button>
 </div>
 
 <div id="comment-panel">
     <div class="panel-header">
-        <span style="float:right; cursor:pointer; font-size:24px;" onclick="closeComments()">&times;</span>
-        <h3 id="panel-title" style="margin:0;">Comments</h3>
+        <span id="panel-title" style="font-weight:bold; color:var(--accent);">Chat</span>
+        <button onclick="closeComments()" style="background:none; border:none; color:white; cursor:pointer; font-size:24px;">&times;</button>
     </div>
-    <div id="comment-list" class="comment-list"></div>
+    <div class="comment-list" id="comment-list"></div>
     <div class="comment-input-area">
         <input type="text" id="user-name" placeholder="Your Name">
-        <textarea id="user-comment" placeholder="Write a comment..." rows="2"></textarea>
-        <button class="send-btn" id="post-btn">Post Comment</button>
+        <textarea id="user-comment" placeholder="Write a message..." rows="2"></textarea>
+        <button class="send-btn" id="post-btn">Send Message</button>
     </div>
 </div>
 
-<div id="bottom-banner">
-    Blocked? <a href="backup/blocked-help.html" target="_blank">Help Page</a> | <a href="backup/support.html" target="_blank">Support</a>
-</div>
+<footer>
+    <p>&copy; 2026 Owen's Games • Syncing globally</p>
+</footer>
 
-<footer>Owen's Games &copy; 2026</footer>
+<script>
+// --- FIREBASE SETUP ---
+const firebaseConfig = {
+  apiKey: "AIzaSyBDXDtnufqucWuFPIYOnJOYxiLYriHfkVo",
+  authDomain: "code-stub.firebaseapp.com",
+  databaseURL: "https://code-stub-default-rtdb.firebaseio.com", 
+  projectId: "code-stub",
+  storageBucket: "code-stub.firebasestorage.app",
+  messagingSenderId: "389870178886",
+  appId: "1:389870178886:web:525e1e2f4dfaf0a3f33047",
+  measurementId: "G-5SBT0X0JGE"
+};
 
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-<script src="script.js"></script>
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+let currentGameID = "";
+
+// --- PAGINATION & SEARCH ---
+let gamesVisible = 5;
+const gamesPerLoad = 5;
+
+function updateGrid() {
+    const cards = document.querySelectorAll(".card");
+    const filter = document.getElementById("searchInput").value.toLowerCase();
+    const btn = document.getElementById("loadMoreBtn");
+    
+    let matchedCards = [];
+    
+    cards.forEach(card => {
+        const title = card.querySelector(".card-title").innerText.toLowerCase();
+        const desc = card.querySelector(".card-desc").innerText.toLowerCase();
+        
+        if (title.includes(filter) || desc.includes(filter)) {
+            matchedCards.push(card);
+        } else {
+            card.classList.remove("visible");
+        }
+    });
+
+    // Handle Pagination
+    matchedCards.forEach((card, index) => {
+        if (filter !== "" || index < gamesVisible) {
+            card.classList.add("visible");
+        } else {
+            card.classList.remove("visible");
+        }
+    });
+
+    // Hide button if no more to show OR if searching
+    if (filter !== "" || gamesVisible >= matchedCards.length) {
+        btn.style.display = "none";
+    } else {
+        btn.style.display = "inline-block";
+    }
+
+    document.getElementById("gameCount").innerText = matchedCards.length + " games total";
+}
+
+function showMore() {
+    gamesVisible += gamesPerLoad;
+    updateGrid();
+}
+
+document.getElementById("searchInput").addEventListener("keyup", () => {
+    gamesVisible = 5; // Reset count when starting a fresh search
+    updateGrid();
+});
+
+// --- FIREBASE SYNC (CLICKS/HEARTS) ---
+database.ref('stats').on('value', (snapshot) => {
+    const stats = snapshot.val();
+    if (!stats) return;
+    for (let id in stats) {
+        const cSpan = document.getElementById(`clicks-${id}`);
+        const hSpan = document.getElementById(`hearts-${id}`);
+        if (cSpan) cSpan.innerText = stats[id].clicks || 0;
+        if (hSpan) hSpan.innerText = stats[id].hearts || 0;
+    }
+});
+
+function handleGameClick(gameID) {
+    if (!localStorage.getItem(`v_click_${gameID}`)) {
+        database.ref(`stats/${gameID}/clicks`).transaction(c => (c || 0) + 1);
+        localStorage.setItem(`v_click_${gameID}`, "true");
+    }
+}
+
+function toggleHeart(gameID) {
+    const btn = document.getElementById(`heart-${gameID}`);
+    const hearted = localStorage.getItem(`v_heart_${gameID}`);
+
+    if (!hearted) {
+        database.ref(`stats/${gameID}/hearts`).transaction(h => (h || 0) + 1);
+        localStorage.setItem(`v_heart_${gameID}`, "true");
+        btn.classList.add('active');
+        btn.innerText = "❤️";
+    } else {
+        database.ref(`stats/${gameID}/hearts`).transaction(h => Math.max(0, (h || 0) - 1));
+        localStorage.removeItem(`v_heart_${gameID}`);
+        btn.classList.remove('active');
+        btn.innerText = "🤍";
+    }
+}
+
+// --- CHAT SYSTEM ---
+function openComments(gameID) {
+    currentGameID = gameID;
+    const panel = document.getElementById('comment-panel');
+    const list = document.getElementById('comment-list');
+    document.getElementById('panel-title').innerText = "Chat: " + gameID.replace(/-/g, ' ');
+    panel.classList.add('active');
+    
+    database.ref('comments/' + gameID).off();
+    database.ref('comments/' + gameID).on('value', (snapshot) => {
+        list.innerHTML = '';
+        if (!snapshot.exists()) {
+            list.innerHTML = '<p style="text-align:center; opacity:0.3;">Be the first to say hi!</p>';
+            return;
+        }
+        snapshot.forEach((child) => {
+            const val = child.val();
+            const div = document.createElement('div');
+            div.className = 'single-comment';
+            div.innerHTML = `<b style="color:#7ab8ff;">${val.name}:</b><div style="margin-top:4px;">${val.content}</div>`;
+            list.appendChild(div);
+        });
+        list.scrollTop = list.scrollHeight;
+    });
+}
+
+function closeComments() {
+    document.getElementById('comment-panel').classList.remove('active');
+}
+
+document.getElementById('post-btn').addEventListener('click', () => {
+    const nameInput = document.getElementById('user-name');
+    const textInput = document.getElementById('user-comment');
+    const name = nameInput.value.trim() || "Guest";
+    const text = textInput.value.trim();
+    if (!text || !currentGameID) return;
+    
+    database.ref('comments/' + currentGameID).push({
+        name: name,
+        content: text,
+        timestamp: firebase.database.ServerValue.TIMESTAMP
+    }).then(() => { textInput.value = ''; });
+});
+
+// --- INITIALIZE ---
+window.onload = () => {
+    // Sync UI hearts with local storage on load
+    document.querySelectorAll('.heart-btn').forEach(btn => {
+        const id = btn.id.replace('heart-', '');
+        if (localStorage.getItem(`v_heart_${id}`)) {
+            btn.classList.add('active');
+            btn.innerText = "❤️";
+        }
+    });
+    updateGrid();
+};
+</script>
+
 </body>
 </html>
