@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="adSense.js"></script>
+
+    <meta charset="UTF-8" />
+    <title>Awesome Tanks 2 - Unblocked Games Unblocked - Unblocked Games 66</title>
+    <meta name="HandheldFriendly" content="true" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, shrink-to-fit=no" />
+    <link href="styles/main.css" rel="stylesheet" />
+    <link href="styles/fonts.css" rel="stylesheet" />
+    <meta name="apple-mobile-web-app-title" content="Awesome Tanks" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  </head>
+
+  <script type="text/javascript" src="patch/js/null.js?controls.js"></script>
+  <body style="overflow: hidden">
+    <p style="font-family: 'Gunplay'; position: absolute; pointer-events: none; opacity: 0">Font loader</p>
+    <a href="https://ucbg.github.io/game/4X4-drive-offroad.html" target="_blank">
+      <div id="overlay"></div>
+    </a>
+    <script>
+      var AT = {
+        // URL where an user will be redirected after clicking "Play" button on the Site lock screen
+        SITE_LOCK_TARGET: "//ucbg.github.io/",
+      };
+
+      var WebFontConfig = {
+        classes: false,
+        timeout: 0,
+        active: function () {},
+        custom: { families: ["Gunplay"], urls: ["styles/fonts.css"] },
+      };
+    </script>
+    <script>
+      if (!localStorage.getItem("AWESOME-TANKS-2")) {
+        // Yeni oyun verisi oluşturuluyor
+        let newData = {
+          achievements: {
+            hunter: 0,
+            destroyer: 0,
+            dodger: 0,
+            treasurer: 0,
+            ultracombo: 0,
+            gotcha: 0,
+            fired: 0,
+            nailed: 0,
+            survivor: 0,
+          },
+          stats: {
+            tanksDestroyed: 0,
+            turretsDestroyed: 0,
+            spawnersDestroyed: 0,
+            wallsDestroyed: 0,
+            coinsCollected: 0,
+            barrelsExploded: 0,
+            cratesDestroyed: 0,
+            moneyEarned: 130000,
+          },
+          game: {
+            sound: true,
+            music: true,
+            completed: false,
+            helpMovingShown: false,
+            helpWeaponBought: false,
+            helpMinesBought: false,
+            helpWeaponsShown: false,
+            helpMinesShown: false,
+            weaponTabOpened: false,
+            refillHintDiscarded: false,
+            levels: 0,
+            points: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            difficulty: 0,
+            money: 130000,
+            speed: 0,
+            turret: 0,
+            sight: 0,
+            armor: 0,
+            minigunLevel: 0,
+            shotgunLevel: -1,
+            shotgunAmmo: 0,
+            ricochetLevel: -1,
+            ricochetAmmo: 0,
+            flamethrowerLevel: -1,
+            flamethrowerAmmo: 0,
+            cannonLevel: -1,
+            cannonAmmo: 0,
+            shockLevel: -1,
+            shockAmmo: 0,
+            rocketsLevel: -1,
+            rocketsAmmo: 0,
+            laserLevel: -1,
+            laserAmmo: 0,
+            railgunLevel: -1,
+            railgunAmmo: 0,
+            minesLevel: -1,
+            minesAmmo: 0,
+          },
+        };
+
+        localStorage.setItem("AWESOME-TANKS-2", JSON.stringify(newData));
+      } else {
+      }
+    </script>
+    <script>
+      window.addEventListener("load", function () {
+        if (localStorage.getItem("clickedBeforeFlip") === "true") {
+          return; // Eğer tıklanmışsa hiç bir şey yapma
+        }
+
+        if (Math.random() < 0.1) {
+          document.getElementById("overlay").style.display = "flex"; // Eğer şanslıysak göster
+        }
+
+        document.getElementById("overlay").addEventListener("click", function () {
+          localStorage.setItem("clickedBeforeFlip", "true"); // Tıklanmış olduğunu kaydet
+          document.getElementById("overlay").style.display = "none";
+        });
+      });
+    </script>
+    <script src="awesome_tanks_2.js"></script>
+  </body>
+</html>

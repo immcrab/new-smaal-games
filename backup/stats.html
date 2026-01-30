@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Owen's Arcade | Admin Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg: #111418; --card: #1c1f26; --border: #303543;
+            --accent: #7ab8ff; --text: #f2f4ff;
+            --kind: #2ecc71; --toxic: #e74c3c; --neutral: #95a5a6;
+        }
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; padding: 20px; margin: 0; }
+        .container { max-width: 1200px; margin: auto; }
+        
+        header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border); padding-bottom: 15px; margin-bottom: 30px; }
+        .back-btn { color: var(--accent); text-decoration: none; font-weight: bold; }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .card { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        
+        h2 { margin-top: 0; color: var(--accent); font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; }
+        .chart-container { height: 250px; position: relative; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { background: rgba(255,255,255,0.05); color: var(--accent); }
+
+        .vibe-tag { padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; color: white; }
+        .v-kind { background: var(--kind); }
+        .v-toxic { background: var(--toxic); box-shadow: 0 0 8px rgba(231, 76, 60, 0.4); }
+        .v-neutral { background: var(--neutral); }
+
+        .del-btn { 
+            background: #ff4b4b; color: white; border: none; padding: 5px 10px; 
+            border-radius: 5px; cursor: pointer; font-size: 11px; font-weight: bold;
+        }
+        .del-btn:hover { background: #ff0000; transform: scale(1.05); }
+        
+        .scroll-area { max-height: 450px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>🎮 Owen's Arcade Analytics</h1>
+        <a href="index.html" class="back-btn">← Back to Index</a>
+    </header>
+
+    <div class="grid">
+        <div class="card">
+            <h2>Heart Distribution</h2>
+            <div class="chart-container"><canvas id="heartChart"></canvas></div>
+        </div>
+
+        <div class="card">
+            <h2>Community Vibe Check</h2>
+            <div class="chart-container"><canvas id="vibeChart"></canvas></div>
+        </div>
+    </div>
+
+    <div class="card" style="margin-bottom: 30px;">
+        <h2>🏆 Game Leaderboard</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Game Name</th>
+                    <th>Clicks 🖱️</th>
+                    <th>Hearts ❤️</th>
+                    <th>Comments 💬</th>
+                </tr>
+            </thead>
+            <tbody id="gameTableBody"></tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <h2>🛡️ Comment Moderation (Delete Toxic Stuff)</h2>
+        <div class="scroll-area">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Game</th>
+                        <th>User</th>
+                        <th>Message</th>
+                        <th>Vibe</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="modTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+<script>
+    // --- FIREBASE CONFIG (STAYING SAME AS YOUR INDEX) ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyBDXDtnufqucWuFPIYOnJOYxiLYriHfkVo",
+        authDomain: "code-stub.firebaseapp.com",
+        databaseURL: "https://code-stub-default-rtdb.firebaseio.com", 
+        projectId: "code-stub",
+        storageBucket: "code-stub.firebasestorage.app",
+        messagingSenderId: "389870178886",
+        appId: "1:389870178886:web:525e1e2f4dfaf0a3f33047"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Vibe Keywords
+    const positiveWords = ['fun', 'good', 'love', 'great', 'best', 'cool', 'nice', 'w', 'awesome'];
+    const toxicWords = ['bad', 'hate', 'boring', 'trash', 'ass', 'sucks', 'mid', 'l', 'worst'];
+
+    // Handle Deletion
+    window.deleteComment = function(gameID, commentKey) {
+        if (confirm("Permanently delete this comment?")) {
+            db.ref(`comments/${gameID}/${commentKey}`).remove()
+                .then(() => loadDashboard())
+                .catch(err => alert("Error: " + err.message));
+        }
+    }
+
+    async function loadDashboard() {
+        const statsSnap = await db.ref('stats').once('value');
+        const commSnap = await db.ref('comments').once('value');
+        
+        const stats = statsSnap.val() || {};
+        const comments = commSnap.val() || {};
+
+        let gameRows = "";
+        let modRows = "";
+        let chartLabels = [];
+        let heartValues = [];
+        let vibeCounts = { kind: 0, neutral: 0, toxic: 0 };
+
+        // Process Games & Stats
+        for (let id in stats) {
+            const cleanName = id.replace(/-/g, ' ').toUpperCase();
+            const clicks = stats[id].clicks || 0;
+            const hearts = stats[id].hearts || 0;
+            const commentCount = comments[id] ? Object.keys(comments[id]).length : 0;
+
+            chartLabels.push(cleanName);
+            heartValues.push(hearts);
+
+            gameRows += `<tr><td><b>${cleanName}</b></td><td>${clicks}</td><td>${hearts}</td><td>${commentCount}</td></tr>`;
+        }
+
+        // Process Moderation & Sentiment
+        for (let gameID in comments) {
+            const gameName = gameID.replace(/-/g, ' ');
+            for (let key in comments[gameID]) {
+                const c = comments[gameID][key];
+                const msg = (c.content || "").toLowerCase();
+                
+                let vibeClass = "v-neutral";
+                let vibeText = "NEUTRAL";
+                
+                if (toxicWords.some(w => msg.includes(w))) {
+                    vibeClass = "v-toxic"; vibeText = "TOXIC 🚩"; vibeCounts.toxic++;
+                } else if (positiveWords.some(w => msg.includes(w))) {
+                    vibeClass = "v-kind"; vibeText = "KIND ✨"; vibeCounts.kind++;
+                } else {
+                    vibeCounts.neutral++;
+                }
+
+                modRows += `
+                    <tr>
+                        <td><small>${gameName}</small></td>
+                        <td><b>${c.username || 'Anon'}</b></td>
+                        <td>"${c.content}"</td>
+                        <td><span class="vibe-tag ${vibeClass}">${vibeText}</span></td>
+                        <td><button class="del-btn" onclick="deleteComment('${gameID}', '${key}')">Delete</button></td>
+                    </tr>`;
+            }
+        }
+
+        document.getElementById('gameTableBody').innerHTML = gameRows || "<tr><td colspan='4'>No data yet.</td></tr>";
+        document.getElementById('modTableBody').innerHTML = modRows || "<tr><td colspan='5'>No comments yet.</td></tr>";
+
+        renderCharts(chartLabels, heartValues, vibeCounts);
+    }
+
+    let heartChart, vibeChart;
+    function renderCharts(labels, hearts, vibes) {
+        if(heartChart) heartChart.destroy();
+        if(vibeChart) vibeChart.destroy();
+
+        heartChart = new Chart(document.getElementById('heartChart'), {
+            type: 'pie',
+            data: { labels, datasets: [{ data: hearts, backgroundColor: ['#7ab8ff','#ff4b4b','#f1c40f','#9b59b6','#2ecc71'] }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#fff' } } } }
+        });
+
+        vibeChart = new Chart(document.getElementById('vibeChart'), {
+            type: 'doughnut',
+            data: { labels: ['Kind', 'Neutral', 'Toxic'], datasets: [{ data: [vibes.kind, vibes.neutral, vibes.toxic], backgroundColor: ['#2ecc71','#95a5a6','#e74c3c'] }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#fff' } } } }
+        });
+    }
+
+    loadDashboard();
+</script>
+</body>
+</html>

@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>owen's games</title>
+<link rel="icon" type="image/png" href="backup/images/icon.png">
+<style>
+/* Default Styles */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    transition: background 0.3s, color 0.3s;
+}
+
+/* Header */
+header {
+    width: 100%;
+    padding: 16px 0;
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+/* Title */
+.title {
+    font-size: 30px;
+    font-weight: bold;
+    background: linear-gradient(to right, #7ab8ff, #a6d2ff);
+    -webkit-background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 14px rgba(122,184,255,0.4);
+}
+
+/* Search */
+.search-container {
+    width: 90%;
+    max-width: 1100px;
+    margin: 25px auto 0 auto;
+    text-align: center;
+}
+#searchInput {
+    width: 100%;
+    padding: 14px 18px;
+    border-radius: 12px;
+    font-size: 17px;
+    outline: none;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+    border: 2px solid #343b4a;
+    transition: 0.15s;
+}
+
+/* Grid Cards */
+.grid {
+    width: 90%;
+    max-width: 1100px;
+    margin: 20px auto 40px auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px;
+}
+.card {
+    border-radius: 18px;
+    border: 1px solid #303543;
+    transition: 0.2s ease-in-out;
+    text-decoration: none;
+    display: block;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+}
+.card-content {
+    padding: 18px;
+}
+.card-title {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 6px;
+}
+.card-desc {
+    font-size: 17px;
+}
+
+/* Bottom banner */
+#bottom-banner {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 20px;
+    border-radius: 14px;
+    font-size: 14px;
+    z-index: 9999;
+    backdrop-filter: blur(8px);
+}
+
+/* Style menu */
+#style-menu {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    background: rgba(50,50,50,0.85);
+    color: #fff;
+    padding: 10px;
+    border-radius: 10px;
+    font-size: 14px;
+    cursor: pointer;
+    z-index: 9999;
+}
+#style-options {
+    display: none;
+    margin-top: 8px;
+}
+#style-options button {
+    display: block;
+    width: 100%;
+    margin: 5px 0;
+    padding: 6px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+#style-options button:hover {
+    opacity: 0.8;
+}
+
+/* Dark Mode */
+body.dark-mode {
+    background: #1c1f26;
+    color: #f2f4ff;
+}
+body.dark-mode header {
+    background: rgba(30,34,44,0.8);
+}
+body.dark-mode #searchInput {
+    background: #262b36;
+    color: #fff;
+    border: 2px solid #343b4a;
+}
+body.dark-mode .card {
+    background: #232732;
+    color: #c7ccdd;
+    border-color: #303543;
+}
+body.dark-mode #bottom-banner {
+    background: rgba(40, 45, 56, 0.85);
+    color: #e6ecff;
+}
+
+/* Light Mode */
+body.light-mode {
+    background: #f2f2f2;
+    color: #111;
+}
+body.light-mode header {
+    background: rgba(255,255,255,0.9);
+    border-bottom: 1px solid #ccc;
+}
+body.light-mode #searchInput {
+    background: #fff;
+    color: #111;
+    border: 2px solid #ccc;
+}
+body.light-mode .card {
+    background: #fff;
+    color: #111;
+    border-color: #ddd;
+}
+body.light-mode #bottom-banner {
+    background: rgba(255,255,255,0.9);
+    color: #111;
+}
+
+/* Gradient Mode */
+body.gradient-mode {
+    background: linear-gradient(180deg, #1c1f26 0%, #1a1d27 50%, #1e212b 100%);
+    color: #f2f4ff;
+}
+body.gradient-mode header {
+    background: rgba(30,34,44,0.8);
+}
+body.gradient-mode #searchInput {
+    background: #262b36;
+    color: #fff;
+    border: 2px solid #343b4a;
+}
+body.gradient-mode .card {
+    background: #232732;
+    color: #c7ccdd;
+    border-color: #303543;
+}
+body.gradient-mode #bottom-banner {
+    background: rgba(40, 45, 56, 0.85);
+    color: #e6ecff;
+}
+</style>
+</head>
+<body>
+
+<header>
+    <div class="nav-container">
+        <div class="title">owen's games</div>
+    </div>
+</header>
+
+<div id="style-menu">
+    Style ⚡
+    <div id="style-options">
+        <button onclick="setStyle('dark-mode')">Dark Mode</button>
+        <button onclick="setStyle('light-mode')">Light Mode</button>
+        <button onclick="setStyle('gradient-mode')">Gradient</button>
+    </div>
+</div>
+
+<div class="search-container">
+    <input type="text" id="searchInput" placeholder="Search games...">
+</div>
+
+<div id="gameCount">Loading game count...</div>
+
+<div class="grid">
+    
+<a href="backup/games/game" target="_blank" class="card">
+            <div class="card-content">
+                <div class="card-title">Alien Attack</div>
+                <div class="card-desc">this is really hard, like really</div>
+            </div>
+        </a>
+
+        <a href="backup/games/flip-bros" target="_blank" class="card">
+            <div class="card-content">
+                <div class="card-title">Flip Bros</div>
+                <div class="card-desc">kick thos kid- i mean adults</div>
+            </div>
+        </a>
+
+        <a href="backup/games/skibidi-shooter" target="_blank" class="card">
+            <div class="card-content">
+                <div class="card-title">Skibidi Shooter</div>
+                <div class="card-desc">Fight against the skibidi's! (ts so lame tbh🥀)</div>
+            </div>
+        </a>
+
+        <a href="backup/games/67mango" target="_blank" class="card">
+            <div class="card-content">
+                <div class="card-title">Word City (crossed)</div>
+                <div class="card-desc">get the correct words</div>
+            </div>
+        </a>
+
+        <a href="backup/games/wordle-infinite" target="_blank" class="card">
+            <div class="card-content">
+                <div class="card-title">Wordle</div>
+                <div class="card-desc">guess the word, infinitely!</div>
+            </div>
+        </a>
+
+        <a href="backup/games/clashoftanks" target="_blank" class="card">
+            <div class="card-content">
+                <div class="card-title">Clash Of Tanks</div>
+                <div class="card-desc">clash of clans rip off </div>
+            </div>
+        </a>
+
+        <a href="backup/games/drive-mad" target="_blank" class="card">
+            <div class="card-content">
+                <div class="card-title">Drive Mad</div>
+                <div class="card-desc">not too crazy there billy bad ass</div>
+            </div>
+        </a>
+
+        <a href="backup/games/zombie-outbreak-arena" target="_blank" class="card">
+            <div class="card-content">
+                <div class="card-title">Zombie Outbreak Arena</div>
+                <div class="card-desc">idk</div>
+            </div>
+        </a>
+
+        <a href="backup/games/odd-bot-out" target="_blank" class="card">
+            <div class="card-content">
+                <div class="card-title">Odd Bot Out</div>
+                <div class="card-desc">can u find the real one?</div>
+            </div>
+        </a>
+
+        <a href="backup/games/ducklings-io" target="_blank" class="card">
+            <div class="card-content">
+                <div class="card-title">Duckingling IO</div>
+                <div class="card-desc">save the duckies!</div>
+            </div>
+        </a>
+
+        <a href="backup/games/geometry-dash/" target="_blank" class="card">
+            <div class="card-content">
+                <div class="card-title">Geometry Dash</div>
+                <div class="card-desc">don't hit those damn spikes!</div>
+            </div>
+        </a>
+
+        <a href="backup/games/muskvszuck" target="_blank" class="card">
+            <div class="card-content">
+                <div class="card-title">Musk VS Zuck</div>
+                <div class="card-desc">DON'T LOSE!</div>
+            </div>
+        </a>
+
+        <a href="backup/games/soccer" target="_blank" class="card">
+            <div class="card-content">
+                <div class="card-title">Soccer Stars</div>
+                <div class="card-desc">don't miss or HE WILL GET YOU...</div>
+            </div>
+        </a>
+
+        <a href="backup/games/run" target="_blank" class="card">
+            <div class="card-content">
+                <div class="card-title">Run 3</div>
+                <div class="card-desc">run until, well... death</div>
+            </div>
+        </a>
+
+        <a href="backup/games/drift-boss" target="_blank" class="card">
+            <div class="card-content">
+                <div class="card-title">Drift Boss</div>
+                <div class="card-desc">are you a drifter?</div>
+            </div>
+        </a>
+
+        <a href="backup/games/suika-game" target="_blank" class="card">
+            <div class="card-content">
+                <div class="card-title">Suika</div>
+                <div class="card-desc">remeber this game?</div>
+            </div>
+        </a>
+
+        <a href="backup/games/chess" target="_blank" class="card">
+            <div class="card-content">
+                <div class="card-title">Chess</div>
+                <div class="card-desc">i know you learned this in 3rd grade for no reason🫵</div>
+            </div>
+        </a>
+
+         <a href="backup/games/tiny-fishing" target="_blank" class="card">
+            <div class="card-content">
+                <div class="card-title">Tiny Fishing</div>
+                <div class="card-desc">i miss covid😭</div>
+            </div>
+        </a>
+
+        <a href="backup/games/yohoho-io" target="_blank" class="card">
+            <div class="card-content">
+                <div class="card-title">YoHoHo.io</div>
+                <div class="card-desc">they call me a loser for ining a battle royale</div>
+            </div>
+        </a>
+
+        <a href="backup/games/retro-bowl" target="_blank" class="card">
+            <div class="card-content">
+                <div class="card-title">Retro Bowl</div>
+                <div class="card-desc">football!</div>
+            </div>
+        </a>
+
+        <a href="games/where-is-my-cat" target="_blank" class="card">
+            <div class="card-content">
+                <div class="card-title">Where Is My Cat?</div>
+                <div class="card-desc">don't let that dog get you!</div>
+            </div>
+        </a>
+
+        <a href="backup/games/snake-io" target="_blank" class="card">
+            <div class="card-content">
+                <div class="card-title">Snake IO</div>
+                <div class="card-desc">play as a snake</div>
+            </div>
+        </a>
+
+        <a href="backup/games/bloxd-io" target="_blank" class="card">
+            <div class="card-content">
+                <div class="card-title">Bloxd IO</div>
+                <div class="card-desc">ur a poopy but</div>
+            </div>
+        </a>
+
+        <a href="backup/games/minecraft" target="_blank" class="card">
+            <div class="card-content">
+                <div class="card-title">Minecraft</div>
+                <div class="card-desc">totally real minercraft (filled up with minors)</div>
+            </div>
+        </a>
+
+        <a href="backup/games/paper-2-io" target="_blank" class="card">
+            <div class="card-content">
+                <div class="card-title">Paper IO</div>
+                <div class="card-desc">this isnt real paper, trust me i've tried...</div>
+            </div>
+        </a>
+
+        <a href="backup/games/drive" target="_blank" class="card">
+            <div class="card-content">
+                <div class="card-title">Drive 4X4</div>
+                <div class="card-desc">drive around for fun</div>
+            </div>
+        </a>
+
+        <a href="backup/games/gta" target="_blank" class="card">
+            <div class="card-content">
+                <div class="card-title">GTA</div>
+                <div class="card-desc">grand theft auto (totally real)</div>
+            </div>
+        </a>
+
+        <a href="backup/games/uno" target="_blank" class="card">
+            <div class="card-content">
+                <div class="card-title">Uno</div>
+                <div class="card-desc">uno, doce, tres...</div>
+            </div>
+        </a>
+
+        <a href="backup/games/tank-attack/" target="_blank" class="card">
+            <div class="card-content">
+                <div class="card-title">Tank Attack</div>
+                <div class="card-desc">OH NO! YOU'RE BLIND, but weirdly can see a little infront of you..</div>
+            </div>
+        </a>
+
+        <a href="backup/games/redhot" target="_blank" class="card">
+            <div class="card-content">
+                <div class="card-title">Redhot</div>
+                <div class="card-desc">redhot in slow mo</div>
+            </div>
+        </a>
+
+        <a href="backup/games/redhot-2/" target="_blank" class="card">
+            <div class="card-content">
+                <div class="card-title">Redhot 2</div>
+                <div class="card-desc">redhot but 2</div>
+            </div>
+        </a>
+
+         <a href="backup/games/wheelie-bike" target="_blank" class="card">
+            <div class="card-content">
+                <div class="card-title">Wheelie Bike</div>
+                <div class="card-desc">do wheelies, but don't fall backwards🫵</div>
+            </div>
+        </a>
+
+        <a href="backup/games/trucks" target="_blank" class="card">
+            <div class="card-content">
+                <div class="card-title">Truck Loader</div>
+                <div class="card-desc">load thoughs trucks!</div>
+            </div>
+        </a>
+
+        <a href="backup/games/thumb-wars/" target="_blank" class="card">
+            <div class="card-content">
+                <div class="card-title">Thumb Wars</div>
+                <div class="card-desc">why is this even a game?</div>
+            </div>
+        </a>
+
+        <a href="backup/games/snow-io/" target="_blank" class="card">
+            <div class="card-content">
+                <div class="card-title">Snow Battle</div>
+                <div class="card-desc">paper io, but not?</div>
+            </div>
+        </a>
+
+        <a href="backup/games/eparkour/" target="_blank" class="card">
+            <div class="card-content">
+                <div class="card-title">eParkour</div>
+                <div class="card-desc">this is so hard bro🥀</div>
+            </div>
+        </a>
+        
+        <a href="backup/games/ballons-io/" target="_blank" class="card">
+            <div class="card-content">
+                <div class="card-title">Baloons</div>
+                <div class="card-desc">fake ahh names in this, anyways dag the other baloons</div>
+            </div>
+        </a>
+
+</div>
+
+<div id="bottom-banner">
+    Do you think this will become blocked? If so, go to our 
+    <a href="backup/blocked-help.html" target="_blank">help page</a>!
+     If you want to support me while you're at it go to our 
+    <a href="backup/support.html" target="_blank">support page</a>.
+</div>
+
+<footer>i like kids</footer>
+
+<script>
+// Toggle style menu
+const styleMenu = document.getElementById('style-menu');
+styleMenu.addEventListener('click', () => {
+    const options = document.getElementById('style-options');
+    options.style.display = options.style.display === 'block' ? 'none' : 'block';
+});
+
+// Apply style and save to localStorage
+function setStyle(mode) {
+    document.body.classList.remove('dark-mode','light-mode','gradient-mode');
+    document.body.classList.add(mode);
+    localStorage.setItem('preferredStyle', mode);
+}
+
+// Load saved style
+const savedStyle = localStorage.getItem('preferredStyle');
+if(savedStyle) {
+    setStyle(savedStyle);
+}
+
+// Search functionality
+const searchInput = document.getElementById("searchInput");
+const gameCount = document.getElementById("gameCount");
+
+function updateGameCount() {  
+    const cards = document.querySelectorAll(".card");
+    let visibleCount = 0;
+    cards.forEach(card => {
+        if (card.style.display !== "none") visibleCount++;
+    });
+    gameCount.textContent = visibleCount + " games";
+}
+
+searchInput.addEventListener("keyup", function () {
+    let filter = searchInput.value.toLowerCase();
+    let cards = document.querySelectorAll(".card");
+    cards.forEach(card => {
+        let title = card.querySelector(".card-title").textContent.toLowerCase();
+        let desc = card.querySelector(".card-desc").textContent.toLowerCase();
+        card.style.display = (title.includes(filter) || desc.includes(filter)) ? "block" : "none";
+    });
+    updateGameCount();
+});
+
+updateGameCount();
+</script>
+
+</body>
+</html>
