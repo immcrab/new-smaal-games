@@ -1,131 +1,115 @@
-const firebaseConfig = {
-  apiKey: "AIzaSyBDXDtnufqucWuFPIYOnJOYxiLYriHfkVo",
-  authDomain: "code-stub.firebaseapp.com",
-  databaseURL: "https://code-stub-default-rtdb.firebaseio.com", 
-  projectId: "code-stub",
-  storageBucket: "code-stub.firebasestorage.app",
-  messagingSenderId: "389870178886",
-  appId: "1:389870178886:web:525e1e2f4dfaf0a3f33047",
-  measurementId: "G-5SBT0X0JGE"
-};
+let tabs = [];
+let activeTabId = null;
 
-firebase.initializeApp(firebaseConfig);
-const database = firebase.database();
-let currentGameID = "";
+const urlInput = document.getElementById('urlInput');
+const viewerContainer = document.getElementById('viewer-container');
+const tabBar = document.getElementById('tab-bar');
+const newTabBtn = document.getElementById('new-tab-btn');
 
-// SEARCH LOGIC
-const searchInput = document.getElementById("searchInput");
-const gameCountDisplay = document.getElementById("gameCount");
-
-function updateGameCount() {  
-    const cards = document.querySelectorAll(".card");
-    let visibleCount = 0;
-    cards.forEach(card => {
-        if (card.style.display !== "none") visibleCount++;
-    });
-    gameCountDisplay.textContent = visibleCount + " games total";
-}
-
-searchInput.addEventListener("keyup", function () {
-    let filter = searchInput.value.toLowerCase();
-    let cards = document.querySelectorAll(".card");
-    cards.forEach(card => {
-        let title = card.querySelector(".card-title").textContent.toLowerCase();
-        let desc = card.querySelector(".card-desc").textContent.toLowerCase();
-        card.style.display = (title.includes(filter) || desc.includes(filter)) ? "flex" : "none";
-    });
-    updateGameCount();
+// Handle Enter Key
+urlInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') launch(urlInput.value);
 });
 
-// CLICKS & HEARTS LOGIC
-database.ref('stats').on('value', (snapshot) => {
-    const stats = snapshot.val();
-    if (!stats) return;
-    for (let id in stats) {
-        const cSpan = document.getElementById(`clicks-${id}`);
-        const hSpan = document.getElementById(`hearts-${id}`);
-        if (cSpan) cSpan.innerText = stats[id].clicks || 0;
-        if (hSpan) hSpan.innerText = stats[id].hearts || 0;
-    }
-});
+document.getElementById('surfBtn').onclick = () => launch(urlInput.value);
 
-function handleGameClick(gameID) {
-    if (!localStorage.getItem(`voted_click_${gameID}`)) {
-        database.ref(`stats/${gameID}/clicks`).transaction(c => (c || 0) + 1);
-        localStorage.setItem(`voted_click_${gameID}`, "true");
-    }
+function createNewTab(initialUrl = "") {
+    const id = Date.now();
+    const tabObj = { id, url: initialUrl, history: [] };
+    tabs.push(tabObj);
+
+    // Create Tab UI
+    const tabEl = document.createElement('div');
+    tabEl.className = 'tab';
+    tabEl.id = `tab-${id}`;
+    tabEl.innerHTML = `<span class="title">New Tab</span><span class="close-tab" onclick="closeTab(event, ${id})">×</span>`;
+    tabEl.onclick = () => switchTab(id);
+    tabBar.insertBefore(tabEl, newTabBtn);
+
+    // Create Content Container
+    const contentEl = document.createElement('div');
+    contentEl.className = 'tab-content';
+    contentEl.id = `content-${id}`;
+    contentEl.innerHTML = '<div style="padding:20px; color:#666; text-align:center;">Enter a URL to start.</div>';
+    viewerContainer.appendChild(contentEl);
+
+    switchTab(id);
+    if (initialUrl) launch(initialUrl);
 }
 
-function toggleHeart(gameID) {
-    const heartBtn = document.getElementById(`heart-${gameID}`);
-    const alreadyHearted = localStorage.getItem(`voted_heart_${gameID}`);
-
-    if (!alreadyHearted) {
-        database.ref(`stats/${gameID}/hearts`).transaction(h => (h || 0) + 1);
-        localStorage.setItem(`voted_heart_${gameID}`, "true");
-        heartBtn.innerText = "❤️";
-        heartBtn.classList.add('active');
-    } else {
-        database.ref(`stats/${gameID}/hearts`).transaction(h => Math.max(0, (h || 0) - 1));
-        localStorage.removeItem(`voted_heart_${gameID}`);
-        heartBtn.innerText = "🤍";
-        heartBtn.classList.remove('active');
-    }
-}
-
-function syncHeartsUI() {
-    document.querySelectorAll('.heart-btn').forEach(btn => {
-        const id = btn.id.replace('heart-', '');
-        if (localStorage.getItem(`voted_heart_${id}`)) {
-            btn.innerText = "❤️";
-            btn.classList.add('active');
-        }
-    });
-}
-
-// COMMENT LOGIC
-function openComments(gameID) {
-    currentGameID = gameID;
-    const panel = document.getElementById('comment-panel');
-    const list = document.getElementById('comment-list');
-    document.getElementById('panel-title').innerText = "Chat: " + gameID.replace(/-/g, ' ');
-    panel.classList.add('active');
-    list.innerHTML = '<p style="text-align:center; opacity:0.5;">Loading chat...</p>';
+function switchTab(id) {
+    activeTabId = id;
+    const currentTab = tabs.find(t => t.id === id);
     
-    database.ref('comments/' + gameID).on('value', (snapshot) => {
-        list.innerHTML = '';
-        if (!snapshot.exists()) {
-            list.innerHTML = '<p style="text-align:center; opacity:0.5;">No comments yet!</p>';
-            return;
-        }
-        snapshot.forEach((child) => {
-            const val = child.val();
-            const div = document.createElement('div');
-            div.className = 'single-comment';
-            div.innerHTML = `<b style="color:#7ab8ff;">${val.name}:</b><div style="margin-top:4px;">${val.content}</div>`;
-            list.appendChild(div);
+    // Update UI
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    
+    document.getElementById(`tab-${id}`).classList.add('active');
+    document.getElementById(`content-${id}`).classList.add('active');
+    
+    urlInput.value = currentTab.url || "";
+}
+
+function closeTab(e, id) {
+    e.stopPropagation();
+    tabs = tabs.filter(t => t.id !== id);
+    document.getElementById(`tab-${id}`).remove();
+    document.getElementById(`content-${id}`).remove();
+    
+    if (activeTabId === id && tabs.length > 0) {
+        switchTab(tabs[0].id);
+    } else if (tabs.length === 0) {
+        createNewTab();
+    }
+}
+
+async function launch(target) {
+    if (!target) return;
+    if (!target.startsWith('http')) target = 'https://' + target;
+
+    const currentTab = tabs.find(t => t.id === activeTabId);
+    currentTab.url = target;
+    const currentViewer = document.getElementById(`content-${activeTabId}`);
+    const tabTitle = document.getElementById(`tab-${activeTabId}`).querySelector('.title');
+
+    currentViewer.innerHTML = "Loading...";
+    tabTitle.innerText = "Loading...";
+
+    try {
+        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(target)}`;
+        const response = await fetch(proxyUrl);
+        const html = await response.text();
+
+        const base = new URL(target).origin;
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+
+        // Rewrite paths
+        doc.querySelectorAll('[src], [href]').forEach(el => {
+            let attr = el.hasAttribute('src') ? 'src' : 'href';
+            let val = el.getAttribute(attr);
+            if (val && !val.startsWith('http') && !val.startsWith('data:')) {
+                el.setAttribute(attr, val.startsWith('/') ? base + val : base + '/' + val);
+            }
         });
-        list.scrollTop = list.scrollHeight;
-    });
+
+        tabTitle.innerText = doc.title || target.split('//')[1].substring(0, 10);
+        currentViewer.innerHTML = doc.documentElement.innerHTML;
+
+        // Intercept links within the tab
+        currentViewer.querySelectorAll('a').forEach(link => {
+            link.onclick = (e) => {
+                e.preventDefault();
+                urlInput.value = link.href;
+                launch(link.href);
+            };
+        });
+
+    } catch (err) {
+        currentViewer.innerHTML = `<div style="padding:20px; color:red;">Failed to load: ${err.message}</div>`;
+    }
 }
 
-function closeComments() {
-    document.getElementById('comment-panel').classList.remove('active');
-    if(currentGameID) database.ref('comments/' + currentGameID).off();
-}
-
-document.getElementById('post-btn').addEventListener('click', () => {
-    const nameInput = document.getElementById('user-name');
-    const textInput = document.getElementById('user-comment');
-    const name = nameInput.value.trim() || "Guest";
-    const text = textInput.value.trim();
-    if (!text || !currentGameID) return;
-    database.ref('comments/' + currentGameID).push({
-        name: name,
-        content: text,
-        timestamp: firebase.database.ServerValue.TIMESTAMP
-    }).then(() => { textInput.value = ''; });
-});
-
-syncHeartsUI();
-updateGameCount();
+// Start with one tab
+createNewTab();

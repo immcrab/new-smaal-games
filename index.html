@@ -317,6 +317,12 @@ window.onload = () => {
             btn.innerText = "❤️";
         }
     });
+    // Increment site-wide visit counter once per browser
+    if (!localStorage.getItem('v_site_visit')) {
+        database.ref('siteVisits').transaction(v => (v || 0) + 1);
+        localStorage.setItem('v_site_visit', 'true');
+    }
+
     updateGrid();
 };
 </script>

@@ -43,6 +43,29 @@
 </head>
 <body>
 
+<!-- Password Gate Overlay -->
+<div id="auth-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:9999;">
+    <div style="background:var(--card);padding:28px;border-radius:12px;border:1px solid var(--border);width:320px;text-align:center;">
+        <h3 style="margin:0 0 12px;color:var(--accent);">Stats Access</h3>
+        <p style="color:var(--text);opacity:0.9;margin:0 0 12px;font-size:13px;">Enter password to view analytics.</p>
+        <input id="auth-pass" type="password" placeholder="Password" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:#0f1115;color:#fff;margin-bottom:12px;" />
+        <div style="display:flex;gap:8px;justify-content:center;">
+            <button id="auth-btn" style="background:var(--accent);color:#0f1115;border:none;padding:8px 14px;border-radius:8px;font-weight:bold;cursor:pointer;">Unlock</button>
+        </div>
+        <p style="margin-top:10px;font-size:12px;color:var(--text);opacity:0.6;">Contact site owner to change password.</p>
+    </div>
+</div>
+
+<!-- Site visits summary (hidden until unlocked) will be updated by the dashboard loader -->
+<div class="container">
+    <div id="visits-card" style="margin-bottom:18px; display:none;">
+        <div class="card">
+            <h2>Total Site Visits</h2>
+            <div id="visitsCount" style="font-size:28px;color:var(--accent);">Loading...</div>
+        </div>
+    </div>
+</div>
+
 <div class="container">
     <header>
         <h1>🎮 Owen's Arcade Analytics</h1>
@@ -204,7 +227,35 @@
         });
     }
 
-    loadDashboard();
+    // DO NOT auto-load dashboard until user authenticates
+    // Password for stats access (change as needed)
+    const STATS_PASSWORD = 'admin123';
+
+    async function loadDashboardWithVisits() {
+        await loadDashboard();
+        try {
+            const vSnap = await db.ref('siteVisits').once('value');
+            const visits = vSnap.val() || 0;
+            const el = document.getElementById('visitsCount');
+            if (el) el.innerText = visits;
+        } catch (e) {
+            console.warn('Could not fetch site visits', e);
+        }
+    }
+
+    document.getElementById('auth-btn').addEventListener('click', () => {
+        const val = document.getElementById('auth-pass').value;
+        if (val === STATS_PASSWORD) {
+            document.getElementById('auth-overlay').style.display = 'none';
+            document.getElementById('visits-card').style.display = 'block';
+            loadDashboardWithVisits();
+        } else {
+            alert('Incorrect password');
+        }
+    });
+
+    document.getElementById('auth-pass').addEventListener('keyup', (e) => { if (e.key === 'Enter') document.getElementById('auth-btn').click(); });
 </script>
 </body>
 </html>
+<div class="container">
