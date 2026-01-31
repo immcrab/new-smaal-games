@@ -1,115 +1,210 @@
-let tabs = [];
-let activeTabId = null;
+/**
+ * smaal.pro | Game Viewer & Social Logic
+ * Handles Stats, Likes, Search, and Live Chat
+ */
 
-const urlInput = document.getElementById('urlInput');
-const viewerContainer = document.getElementById('viewer-container');
-const tabBar = document.getElementById('tab-bar');
-const newTabBtn = document.getElementById('new-tab-btn');
+// --- 1. FIREBASE CONFIGURATION ---
+// Replace these values with your actual Firebase Project settings
+const firebaseConfig = {
+    apiKey: "AIzaSyBDXDtnufqucWuFPIYOnJOYxiLYriHfkVo",
+    authDomain: "code-stub.firebaseapp.com",
+    databaseURL: "https://code-stub-default-rtdb.firebaseio.com",
+    projectId: "code-stub",
+    storageBucket: "code-stub.firebasestorage.app",
+    messagingSenderId: "389870178886",
+    appId: "1:389870178886:web:525e1e2f4dfaf0a3f33047"
+};
 
-// Handle Enter Key
-urlInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') launch(urlInput.value);
-});
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-document.getElementById('surfBtn').onclick = () => launch(urlInput.value);
+// --- 2. GLOBAL STATE ---
+let currentChatGameId = null;
+let visibleLimit = 8;
+let allCards = [];
 
-function createNewTab(initialUrl = "") {
-    const id = Date.now();
-    const tabObj = { id, url: initialUrl, history: [] };
-    tabs.push(tabObj);
+// --- 3. LOCAL STORAGE HELPERS ---
+const getStored = (key) => JSON.parse(localStorage.getItem(key) || "[]");
+const saveStored = (key, val) => localStorage.setItem(key, JSON.stringify(val));
 
-    // Create Tab UI
-    const tabEl = document.createElement('div');
-    tabEl.className = 'tab';
-    tabEl.id = `tab-${id}`;
-    tabEl.innerHTML = `<span class="title">New Tab</span><span class="close-tab" onclick="closeTab(event, ${id})">×</span>`;
-    tabEl.onclick = () => switchTab(id);
-    tabBar.insertBefore(tabEl, newTabBtn);
+// --- 4. COMMENT / CHAT LOGIC ---
+window.openComments = function(id) {
+    currentChatGameId = id;
+    const panel = document.getElementById('comment-panel');
+    const title = document.getElementById('panel-game-title');
+    
+    // Update Panel UI
+    if(title) title.innerText = id.replace(/-/g, ' ');
+    panel.classList.add('active');
 
-    // Create Content Container
-    const contentEl = document.createElement('div');
-    contentEl.className = 'tab-content';
-    contentEl.id = `content-${id}`;
-    contentEl.innerHTML = '<div style="padding:20px; color:#666; text-align:center;">Enter a URL to start.</div>';
-    viewerContainer.appendChild(contentEl);
+    // Load live comments for this specific game
+    const commentList = document.querySelector('.comment-list');
+    db.ref(`comments/${id}`).on('value', (snapshot) => {
+        commentList.innerHTML = ''; 
+        const data = snapshot.val();
+        
+        if (data) {
+            Object.values(data).forEach(msg => {
+                const div = document.createElement('div');
+                div.className = 'single-comment';
+                div.innerHTML = `<strong>${msg.user}:</strong> ${msg.text}`;
+                commentList.appendChild(div);
+            });
+            commentList.scrollTop = commentList.scrollHeight; // Auto-scroll
+        } else {
+            commentList.innerHTML = '<div style="text-align:center; color:#666; margin-top:20px;">No messages yet. Start the chat!</div>';
+        }
+    });
+};
 
-    switchTab(id);
-    if (initialUrl) launch(initialUrl);
+window.closeComments = function() {
+    document.getElementById('comment-panel').classList.remove('active');
+    if (currentChatGameId) {
+        db.ref(`comments/${currentChatGameId}`).off(); // Kill listener to save data/speed
+    }
+};
+
+window.sendComment = function() {
+    const nameInput = document.getElementById('comment-name');
+    const textInput = document.getElementById('comment-text');
+    
+    if (!textInput.value.trim()) return;
+
+    const newMsg = {
+        user: nameInput.value.trim() || "Guest",
+        text: textInput.value.trim(),
+        timestamp: Date.now()
+    };
+
+    db.ref(`comments/${currentChatGameId}`).push(newMsg);
+    textInput.value = ''; 
+};
+
+// --- 5. STATS & LIKES LOGIC ---
+function syncStats() {
+    // Sync Clicks and Hearts
+    db.ref('stats').on('value', (snapshot) => {
+        const stats = snapshot.val();
+        if (!stats) return;
+        for (let id in stats) {
+            const clickEl = document.getElementById(`clicks-${id}`);
+            const heartEl = document.getElementById(`hearts-${id}`);
+            if (clickEl) clickEl.innerText = stats[id].clicks || 0;
+            if (heartEl) heartEl.innerText = stats[id].hearts || 0;
+        }
+    });
+
+    // Sync Chat bubble counts
+    db.ref('comments').on('value', (snapshot) => {
+        const allComments = snapshot.val();
+        if (!allComments) return;
+        for (let id in allComments) {
+            const count = Object.keys(allComments[id]).length;
+            const btn = document.querySelector(`[onclick="openComments('${id}')"]`);
+            if (btn) btn.innerText = `💬 Chat (${count})`;
+        }
+    });
 }
 
-function switchTab(id) {
-    activeTabId = id;
-    const currentTab = tabs.find(t => t.id === id);
-    
-    // Update UI
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    
-    document.getElementById(`tab-${id}`).classList.add('active');
-    document.getElementById(`content-${id}`).classList.add('active');
-    
-    urlInput.value = currentTab.url || "";
-}
+window.handleGameClick = function(id) {
+    let clicked = getStored('clicked_games');
+    if (!clicked.includes(id)) {
+        db.ref(`stats/${id}/clicks`).transaction(c => (c || 0) + 1);
+        clicked.push(id);
+        saveStored('clicked_games', clicked);
+    }
+};
 
-function closeTab(e, id) {
-    e.stopPropagation();
-    tabs = tabs.filter(t => t.id !== id);
-    document.getElementById(`tab-${id}`).remove();
-    document.getElementById(`content-${id}`).remove();
-    
-    if (activeTabId === id && tabs.length > 0) {
-        switchTab(tabs[0].id);
-    } else if (tabs.length === 0) {
-        createNewTab();
+window.toggleHeart = function(id) {
+    const btn = document.getElementById(`heart-${id}`);
+    let liked = getStored('liked_games');
+    const isAlreadyLiked = liked.includes(id);
+
+    // Atomic update in Firebase
+    db.ref(`stats/${id}/hearts`).transaction(c => {
+        return isAlreadyLiked ? Math.max(0, (c || 1) - 1) : (c || 0) + 1;
+    });
+
+    if (isAlreadyLiked) {
+        liked = liked.filter(item => item !== id);
+        btn.innerText = "🤍"; 
+        btn.classList.remove('active');
+    } else {
+        liked.push(id);
+        btn.innerText = "❤️"; 
+        btn.classList.add('active');
+    }
+    saveStored('liked_games', liked);
+};
+
+// --- 6. SEARCH & GRID LOGIC ---
+function updateGrid() {
+    const searchInput = document.getElementById('searchInput');
+    const searchTerm = searchInput ? searchInput.value.toLowerCase() : "";
+    let matches = 0;
+
+    allCards.forEach(card => {
+        const title = card.querySelector('.card-title').innerText.toLowerCase();
+        if (title.includes(searchTerm)) {
+            if (matches < visibleLimit) card.classList.add('visible');
+            else card.classList.remove('visible');
+            matches++;
+        } else {
+            card.classList.remove('visible');
+        }
+    });
+
+    const countEl = document.getElementById('gameCount');
+    if (countEl) {
+        countEl.innerText = `Showing ${Math.min(matches, visibleLimit)} of ${matches} games`;
+    }
+
+    const loadBtn = document.getElementById('loadMoreBtn');
+    if (loadBtn) {
+        loadBtn.style.display = matches > visibleLimit ? 'inline-block' : 'none';
     }
 }
 
-async function launch(target) {
-    if (!target) return;
-    if (!target.startsWith('http')) target = 'https://' + target;
+window.showMore = () => { 
+    visibleLimit += 8; 
+    updateGrid(); 
+};
 
-    const currentTab = tabs.find(t => t.id === activeTabId);
-    currentTab.url = target;
-    const currentViewer = document.getElementById(`content-${activeTabId}`);
-    const tabTitle = document.getElementById(`tab-${activeTabId}`).querySelector('.title');
+// --- 7. INITIALIZATION ---
+document.addEventListener('DOMContentLoaded', () => {
+    allCards = Array.from(document.querySelectorAll('.card'));
+    
+    // Live listeners
+    syncStats();
+    
+    // UI Setup
+    getStored('liked_games').forEach(id => {
+        const btn = document.getElementById(`heart-${id}`);
+        if (btn) { btn.innerText = "❤️"; btn.classList.add('active'); }
+    });
 
-    currentViewer.innerHTML = "Loading...";
-    tabTitle.innerText = "Loading...";
+    // Search event
+    const searchBar = document.getElementById('searchInput');
+    if (searchBar) {
+        searchBar.addEventListener('input', () => {
+            visibleLimit = 8;
+            updateGrid();
+        });
+    }
 
-    try {
-        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(target)}`;
-        const response = await fetch(proxyUrl);
-        const html = await response.text();
-
-        const base = new URL(target).origin;
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-
-        // Rewrite paths
-        doc.querySelectorAll('[src], [href]').forEach(el => {
-            let attr = el.hasAttribute('src') ? 'src' : 'href';
-            let val = el.getAttribute(attr);
-            if (val && !val.startsWith('http') && !val.startsWith('data:')) {
-                el.setAttribute(attr, val.startsWith('/') ? base + val : base + '/' + val);
+    // Chat "Enter" key listener
+    const chatInput = document.getElementById('comment-text');
+    if (chatInput) {
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                window.sendComment();
             }
         });
-
-        tabTitle.innerText = doc.title || target.split('//')[1].substring(0, 10);
-        currentViewer.innerHTML = doc.documentElement.innerHTML;
-
-        // Intercept links within the tab
-        currentViewer.querySelectorAll('a').forEach(link => {
-            link.onclick = (e) => {
-                e.preventDefault();
-                urlInput.value = link.href;
-                launch(link.href);
-            };
-        });
-
-    } catch (err) {
-        currentViewer.innerHTML = `<div style="padding:20px; color:red;">Failed to load: ${err.message}</div>`;
     }
-}
 
-// Start with one tab
-createNewTab();
+    updateGrid();
+
+    // Log site visit
+    db.ref('siteVisits').transaction(count => (count || 0) + 1);
+});

@@ -148,14 +148,15 @@
 
 <div id="comment-panel">
     <div class="panel-header">
-        <span id="panel-title" style="font-weight:bold; color:var(--accent);">Chat</span>
-        <button onclick="closeComments()" style="background:none; border:none; color:white; cursor:pointer; font-size:24px;">&times;</button>
+        <span id="panel-game-title">Game Chat</span>
+        <button onclick="closeComments()">×</button>
     </div>
-    <div class="comment-list" id="comment-list"></div>
+    <div class="comment-list">
+        </div>
     <div class="comment-input-area">
-        <input type="text" id="user-name" placeholder="Your Name">
-        <textarea id="user-comment" placeholder="Write a message..." rows="2"></textarea>
-        <button class="send-btn" id="post-btn">Send Message</button>
+        <input type="text" id="comment-name" placeholder="Name">
+        <textarea id="comment-text" placeholder="Type a message..."></textarea>
+        <button onclick="sendComment()">Send</button>
     </div>
 </div>
 
@@ -163,142 +164,10 @@
     <p>&copy; 2026 Owen's Games • Syncing globally</p>
 </footer>
 
-<script>
-// 1. FIREBASE CONFIGURATION
-// Replace these with your actual Firebase Project settings!
-const firebaseConfig = {
-  apiKey: "AIzaSyCJbbrAHOSZKMr_9DBm2IDEchdET83EcuY",
-  authDomain: "smaal-webproxy.firebaseapp.com",
-  databaseURL: "https://smaal-webproxy-default-rtdb.firebaseio.com",
-  projectId: "smaal-webproxy",
-  storageBucket: "smaal-webproxy.firebasestorage.app",
-  messagingSenderId: "47459119270",
-  appId: "1:47459119270:web:a723c7d2a0cc11d1324467",
-  measurementId: "G-DY2WKVT2K6"
-};
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-
-// 2. GRID & SEARCH LOGIC
-let currentVisible = 12; // Start with 12 games
-const increment = 8;     // Load 8 more at a time
-let currentChatGame = null;
-
-function updateDisplay() {
-    const cards = document.querySelectorAll('.card');
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-    let visibleCount = 0;
-    let matchCount = 0;
-
-    cards.forEach(card => {
-        const title = card.querySelector('.card-title').innerText.toLowerCase();
-        const matchesSearch = title.includes(searchTerm);
-        
-        if (matchesSearch) {
-            matchCount++;
-            if (visibleCount < currentVisible) {
-                card.classList.add('visible');
-                visibleCount++;
-            } else {
-                card.classList.remove('visible');
-            }
-        } else {
-            card.classList.remove('visible');
-        }
-    });
-
-    // Update the UI text and button
-    document.getElementById('gameCount').innerText = `Showing ${visibleCount} of ${matchCount} games`;
-    const loadMoreBtn = document.getElementById('loadMoreBtn');
-    loadMoreBtn.style.display = (visibleCount >= matchCount) ? 'none' : 'inline-block';
-}
-
-function showMore() {
-    currentVisible += increment;
-    updateDisplay();
-}
-
-// 3. STATS (Clicks & Hearts)
-function handleGameClick(gameId) {
-    db.ref('stats/' + gameId + '/clicks').transaction(current => (current || 0) + 1);
-}
-
-function toggleHeart(gameId) {
-    const btn = document.getElementById(`heart-${gameId}`);
-    const isAdding = !btn.classList.contains('active');
-    
-    btn.classList.toggle('active');
-    btn.innerText = isAdding ? '❤️' : '🤍';
-
-    db.ref('stats/' + gameId + '/hearts').transaction(current => {
-        return isAdding ? (current || 0) + 1 : Math.max(0, (current || 0) - 1);
-    });
-}
-
-// Sync stats from Firebase in real-time
-db.ref('stats').on('value', (snapshot) => {
-    const data = snapshot.val();
-    if (!data) return;
-
-    for (const gameId in data) {
-        const clickEl = document.getElementById(`clicks-${gameId}`);
-        const heartEl = document.getElementById(`hearts-${gameId}`);
-        if (clickEl) clickEl.innerText = data[gameId].clicks || 0;
-        if (heartEl) heartEl.innerText = data[gameId].hearts || 0;
-    }
-});
-
-// 4. COMMENT/CHAT SYSTEM
-function openComments(gameId) {
-    currentChatGame = gameId;
-    document.getElementById('comment-panel').classList.add('active');
-    document.getElementById('panel-title').innerText = `Chat: ${gameId.replace(/-/g, ' ')}`;
-    
-    // Stop listening to previous chat and start listening to this one
-    db.ref('comments/' + gameId).off(); 
-    db.ref('comments/' + gameId).limitToLast(15).on('value', (snapshot) => {
-        const list = document.getElementById('commentList');
-        list.innerHTML = '';
-        snapshot.forEach(child => {
-            const val = child.val();
-            const div = document.createElement('div');
-            div.className = 'single-comment';
-            div.innerHTML = `<strong>${val.user}:</strong> ${val.text}`;
-            list.appendChild(div);
-        });
-        list.scrollTop = list.scrollHeight;
-    });
-}
-
-function closeComments() {
-    document.getElementById('comment-panel').classList.remove('active');
-}
-
-function sendComment() {
-    const user = document.getElementById('userName').value || "Guest";
-    const text = document.getElementById('commentText').value;
-    
-    if (text.trim() === "" || !currentChatGame) return;
-
-    db.ref('comments/' + currentChatGame).push({
-        user: user,
-        text: text,
-        timestamp: Date.now()
-    });
-    document.getElementById('commentText').value = '';
-}
-
-// 5. EVENT LISTENERS
-document.getElementById('searchInput').addEventListener('input', () => {
-    currentVisible = 12; // Reset view on new search
-    updateDisplay();
-});
-
-// Initialize the page
-window.onload = updateDisplay;
-</script>
+<script src="script.js"></script>
 
 </body>
 </html>
