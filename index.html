@@ -86,7 +86,154 @@
 .card-actions .comment-trigger {
     padding: 10px 5px; /* Slightly thinner padding */
 }
-    </style>
+
+:root {
+        --accent: #00d4ff;
+        --bg-panel: rgba(15, 15, 20, 0.95);
+        --user-msg: #323232;
+        --ai-msg: #0055ff;
+    }
+
+    #ai-assistant {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        z-index: 9999;
+        font-family: 'Inter', sans-serif;
+    }
+
+    #ai-bubble {
+        display: none;
+        background: var(--bg-panel);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        margin-bottom: 15px;
+        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.6);
+        width: 350px;
+        height: 450px; /* Fixed height for chat feel */
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .chat-header {
+        padding: 15px;
+        background: rgba(255, 255, 255, 0.03);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    #chat-history {
+        flex: 1;
+        overflow-y: auto;
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    /* Message Bubbles */
+    .msg {
+        max-width: 80%;
+        padding: 10px 14px;
+        border-radius: 15px;
+        font-size: 14px;
+        line-height: 1.4;
+        word-wrap: break-word;
+    }
+
+    .user-msg {
+        align-self: flex-end;
+        background: var(--user-msg);
+        color: white;
+        border-bottom-right-radius: 4px;
+    }
+
+    .ai-msg {
+        align-self: flex-start;
+        background: var(--ai-msg);
+        color: white;
+        border-bottom-left-radius: 4px;
+    }
+
+    .chat-input-area {
+        padding: 15px;
+        background: rgba(0, 0, 0, 0.2);
+        display: flex;
+        gap: 8px;
+    }
+
+    #ai-input {
+        flex: 1;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        padding: 10px;
+        color: white;
+        outline: none;
+    }
+
+    #ai-input:focus { border-color: var(--accent); }
+
+    .ai-toggle-btn {
+        background: linear-gradient(135deg, #0072ff 0%, #00d4ff 100%);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        cursor: pointer;
+        font-size: 24px;
+        box-shadow: 0 5px 15px rgba(0, 114, 255, 0.4);
+        margin-left: auto;
+        display: block;
+    }
+
+    .chat-input-area {
+        padding: 12px;
+        background: rgba(0, 0, 0, 0.3);
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+
+    #ai-input {
+        flex: 1;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        padding: 12px;
+        color: white;
+        outline: none;
+        font-size: 14px;
+    }
+
+    .send-btn {
+        background: var(--accent);
+        color: #000;
+        border: none;
+        border-radius: 10px;
+        width: 45px;
+        height: 40px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        font-size: 18px;
+    }
+
+    .send-btn:hover {
+        transform: scale(1.05);
+        filter: brightness(1.2);
+    }
+
+    /* Animations */
+    .show-chat { display: flex !important; animation: popIn 0.3s ease forwards; }
+    @keyframes popIn { from { opacity: 0; transform: scale(0.9) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+</style>
 </head>
 <body>
 
@@ -776,11 +923,14 @@
             }
         });
 
-        document.getElementById('gameCount').innerText = `Showing ${matchCount} of ${totalMatches} games`;
-        loadMoreBtn.style.display = (matchCount >= totalMatches) ? 'none' : 'inline-block';
+        if(document.getElementById('gameCount')) {
+            document.getElementById('gameCount').innerText = `Showing ${matchCount} of ${totalMatches} games`;
+        }
+        if(loadMoreBtn) {
+            loadMoreBtn.style.display = (matchCount >= totalMatches) ? 'none' : 'inline-block';
+        }
     }
 
-    // New Full Screen Logic
     function toggleFullScreen(url) {
         const gameWindow = window.open(url, '_blank');
         if (gameWindow) {
@@ -788,15 +938,19 @@
         }
     }
 
-    searchInput.addEventListener('input', () => {
-        visibleCount = CARDS_PER_PAGE;
-        updateGallery();
-    });
+    if(searchInput) {
+        searchInput.addEventListener('input', () => {
+            visibleCount = CARDS_PER_PAGE;
+            updateGallery();
+        });
+    }
 
-    loadMoreBtn.addEventListener('click', () => {
-        visibleCount += CARDS_PER_PAGE;
-        updateGallery();
-    });
+    if(loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', () => {
+            visibleCount += CARDS_PER_PAGE;
+            updateGallery();
+        });
+    }
 
     function handleGameClick(id) {
         db.ref('stats/' + id + '/clicks').transaction(c => (c || 0) + 1);
@@ -849,7 +1003,171 @@
         });
     });
 
-    updateGallery();
+    // --- AI ASSISTANT LOGIC ---
+    const GROQ_API_KEY = "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"; 
+    let chatContext = [];
+
+    function toggleAI() {
+        const bubble = document.getElementById('ai-bubble');
+        const greetings = [
+            "Neural link established. Ready to play?",
+            "Welcome back, Commander. What's the move?",
+            "Systems green. Pick your poison.",
+            "Detected: High-performance gamer. Standing by.",
+            "The library is loaded. Where to, boss?",
+            "Booting up... what world are we visiting today?"
+        ];
+
+        const isOpening = !bubble.classList.contains('show-chat');
+
+        if (isOpening) {
+            const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
+            addMessage(randomGreeting, false); 
+            bubble.classList.add('show-chat');
+            document.getElementById('ai-input').focus();
+        } else {
+            bubble.classList.remove('show-chat');
+        }
+    }
+
+    async function sendMessage() {
+        const inputField = document.getElementById('ai-input');
+        const userText = inputField.value.trim();
+        
+        if (userText !== "") {
+            inputField.value = '';
+            addMessage(userText, true);
+            await askGroq(userText);
+        }
+    }
+
+    function addMessage(text, isUser = false) {
+        const history = document.getElementById('chat-history');
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `msg ${isUser ? 'user-msg' : 'ai-msg'}`;
+        msgDiv.innerText = text;
+        history.appendChild(msgDiv);
+        history.scrollTop = history.scrollHeight;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const aiInput = document.getElementById('ai-input');
+        if (aiInput) {
+            aiInput.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+        }
+        updateGallery();
+    });
+
+    async function askGroq(userInput) {
+        const gameLinks = Array.from(document.querySelectorAll('.card-title'))
+                               .map(el => el.innerText.trim());
+
+        const systemPrompt = `You are a helpful gaming assistant.
+        Available games: ${gameLinks.join(', ')}.
+        If they want to play/open/launch a game, reply with JUST the game name from the list. 
+        Otherwise, be brief and cool.`;
+
+        try {
+            const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${GROQ_API_KEY}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    model: "llama-3.3-70b-versatile",
+                    messages: [
+                        { role: "system", content: systemPrompt },
+                        ...chatContext,
+                        { role: "user", content: userInput }
+                    ],
+                    temperature: 0.5
+                })
+            });
+
+            const data = await response.json();
+            const aiResponse = data.choices[0].message.content.trim();
+            
+            chatContext.push({ role: "user", content: userInput });
+            chatContext.push({ role: "assistant", content: aiResponse });
+            if(chatContext.length > 6) chatContext.shift();
+
+            handleLogic(aiResponse, gameLinks);
+        } catch (err) {
+            addMessage("Connection error. Check console.");
+        }
+    }
+
+    function handleLogic(aiResponse, gameLinks) {
+        const cleanResponse = aiResponse.toLowerCase().replace(/[.!]/g, '').trim();
+
+        const matchedGame = gameLinks.find(game => {
+            const cleanGame = game.toLowerCase().trim();
+            return cleanResponse === cleanGame || cleanResponse.includes(cleanGame);
+        });
+
+        if (matchedGame) {
+            // Randomized Launch Messages
+            const launchLines = [
+                `Initializing ${matchedGame}... See you on the leaderboard.`,
+                `Booting up ${matchedGame}. Good luck!`,
+                `Target acquired: ${matchedGame}. Launching now...`,
+                `Connecting to ${matchedGame} servers. Get ready.`
+            ];
+            addMessage(launchLines[Math.floor(Math.random() * launchLines.length)]);
+            
+            const titles = document.querySelectorAll('.card-title');
+            let foundAndClicked = false;
+
+            for (let t of titles) {
+                if (t.innerText.trim().toLowerCase() === matchedGame.toLowerCase()) {
+                    const clickable = t.closest('a') || t.closest('.card') || t.parentElement;
+                    
+                    if (clickable) {
+                        setTimeout(() => { 
+                            clickable.dispatchEvent(new MouseEvent('click', {
+                                view: window,
+                                bubbles: true,
+                                cancelable: true
+                            }));
+                            clickable.click(); 
+                        }, 800);
+                        foundAndClicked = true;
+                        break;
+                    }
+                }
+            }
+            
+            if (!foundAndClicked) {
+                addMessage("Target identified, but I couldn't trigger the link.");
+            }
+        } else {
+            addMessage(aiResponse);
+        }
+    }
 </script>
+
+<div id="ai-assistant">
+    <div id="ai-bubble">
+        <div class="chat-header">
+            <div style="width: 10px; height: 10px; background: #00ff88; border-radius: 50%; box-shadow: 0 0 10px #00ff88;"></div>
+            <span style="color: #ccc; font-size: 12px; font-weight: bold; letter-spacing: 1px;">GAMER AI</span>
+        </div>
+        
+        <div id="chat-history">
+            <div class="msg ai-msg">System online. Tell me what to launch or ask a question.</div>
+        </div>
+
+        <div class="chat-input-area">
+            <input type="text" id="ai-input" placeholder="Message Groq AI...">
+            <button class="send-btn" onclick="sendMessage()">➤</button>
+        </div>
+    </div>
+    <button class="ai-toggle-btn" onclick="toggleAI()">🤖</button>
+</div>
 </body>
 </html>
