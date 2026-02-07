@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Local API Encryptor</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #121212; color: white; }
+        input { width: 100%; padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #444; background: #222; color: white; }
+        #result { background: #000; padding: 15px; border: 1px dashed #00d4ff; word-break: break-all; margin-top: 20px; color: #00ff88; }
+    </style>
+</head>
+<body>
+    <h2>Secure Key Encryptor</h2>
+    <p>This runs 100% locally on your computer. Your key is not sent to any server.</p>
+    
+    <label>Paste your Groq Key:</label>
+    <input type="text" id="rawKey" placeholder="gsk_...">
+    
+    <label>Create a Password (don't forget this!):</label>
+    <input type="password" id="pass" placeholder="Your secret password">
+    
+    <button onclick="encrypt()" style="padding: 10px 20px; cursor:pointer;">Generate Encrypted String</button>
+
+    <div id="result" style="display:none;">
+        <strong>Copy this into your code:</strong><br><br>
+        <span id="output"></span>
+    </div>
+
+    <script>
+        function encrypt() {
+            const key = document.getElementById('rawKey').value;
+            const pass = document.getElementById('pass').value;
+            if(!key || !pass) return alert("Fill in both fields!");
+            
+            const encrypted = CryptoJS.AES.encrypt(key, pass).toString();
+            document.getElementById('result').style.display = 'block';
+            document.getElementById('output').innerText = encrypted;
+        }
+    </script>
+</body>
+</html>
