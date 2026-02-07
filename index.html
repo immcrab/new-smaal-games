@@ -75,6 +75,17 @@
         .send-btn { background: var(--accent); color: #1c1f26; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
 
         footer { text-align: center; padding: 40px; color: var(--text-dim); border-top: 1px solid rgba(255,255,255,0.05); }
+
+        .card-actions {
+    display: flex;
+    background: rgba(0,0,0,0.2);
+    padding: 8px;
+    gap: 5px; /* Reduced gap to fit 3 buttons */
+}
+
+.card-actions .comment-trigger {
+    padding: 10px 5px; /* Slightly thinner padding */
+}
     </style>
 </head>
 <body>
@@ -94,6 +105,22 @@
 </div>
 
 <div class="grid" id="gameGrid">
+
+    <div class="card" data-id="smaalweb-proxy" style="border-color: #ffca28;">
+    <a href="https://web-proxy.smaal.pro" target="_blank" class="card-link" onclick="handleGameClick('smaalweb-proxy')">
+        <div class="card-title">SmaalWEB</div>
+        <div class="card-desc">A fast, secure web proxy developed by Owen Lee.</div>
+        <div class="card-stats">
+            <span>rlly fast fr fr</span>
+            <span>🖱️ <span id="clicks-smaalweb-proxy">0</span></span>
+        </div>
+    </a>
+    <div class="card-actions">
+        <button class="comment-trigger" onclick="openComments('smaalweb-proxy')">💬 Chat</button>
+        <button class="heart-btn" id="heart-smaalweb-proxy" onclick="toggleHeart('smaalweb-proxy')">🤍</button>
+    </div>
+</div>
+
     <div class="card" data-id="funny-shooter">
         <a href="backup/games/shooter" target="_blank" class="card-link" onclick="handleGameClick('funny-shooter')">
             <div class="card-title">Funny Shooter</div>
@@ -701,208 +728,128 @@
 </div>
 
 <footer>
-    <p>&copy; 2026 Owen's Games | All Rights Reserved</p>
+    <p>&copy; 2026 Owen's Games • Built with speed</p>
 </footer>
 
 <script>
-// --- 1. FIREBASE CONFIGURATION ---
-const firebaseConfig = {
-    apiKey: "AIzaSyBDXDtnufqucWuFPIYOnJOYxiLYriHfkVo",
-    authDomain: "code-stub.firebaseapp.com",
-    databaseURL: "https://code-stub-default-rtdb.firebaseio.com",
-    projectId: "code-stub",
-    storageBucket: "code-stub.firebasestorage.app",
-    messagingSenderId: "389870178886",
-    appId: "1:389870178886:web:525e1e2f4dfaf0a3f33047"
-};
-
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-
-// --- 2. GLOBAL STATE ---
-let currentChatGameId = null;
-let visibleLimit = 8;
-let allCards = [];
-
-// --- 3. LOCAL STORAGE HELPERS ---
-const getStored = (key) => JSON.parse(localStorage.getItem(key) || "[]");
-const saveStored = (key, val) => localStorage.setItem(key, JSON.stringify(val));
-
-// --- 4. COMMENT / CHAT LOGIC ---
-window.openComments = function(id) {
-    if (event) event.stopPropagation(); // Prevents link from opening
-    currentChatGameId = id;
-    const panel = document.getElementById('comment-panel');
-    const title = document.getElementById('panel-game-title');
-    
-    if(title) title.innerText = id.replace(/-/g, ' ');
-    panel.classList.add('active');
-
-    const commentList = document.querySelector('.comment-list');
-    db.ref(`comments/${id}`).on('value', (snapshot) => {
-        commentList.innerHTML = ''; 
-        const data = snapshot.val();
-        
-        if (data) {
-            Object.values(data).forEach(msg => {
-                const div = document.createElement('div');
-                div.className = 'single-comment';
-                div.innerHTML = `<strong>${msg.user}:</strong> ${msg.text}`;
-                commentList.appendChild(div);
-            });
-            commentList.scrollTop = commentList.scrollHeight;
-        } else {
-            commentList.innerHTML = '<div style="text-align:center; color:#666; margin-top:20px;">No messages yet.</div>';
-        }
-    });
-};
-
-window.closeComments = function() {
-    document.getElementById('comment-panel').classList.remove('active');
-    if (currentChatGameId) {
-        db.ref(`comments/${currentChatGameId}`).off();
-    }
-};
-
-window.sendComment = function() {
-    const nameInput = document.getElementById('comment-name');
-    const textInput = document.getElementById('comment-text');
-    
-    if (!textInput.value.trim() || !currentChatGameId) return;
-
-    const newMsg = {
-        user: nameInput.value.trim() || "Guest",
-        text: textInput.value.trim(),
-        timestamp: Date.now()
+    // --- FIREBASE CONFIG ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyBDXDtnufqucWuFPIYOnJOYxiLYriHfkVo",
+        authDomain: "code-stub.firebaseapp.com",
+        databaseURL: "https://code-stub-default-rtdb.firebaseio.com",
+        projectId: "code-stub",
+        storageBucket: "code-stub.firebasestorage.app",
+        messagingSenderId: "389870178886",
+        appId: "1:389870178886:web:525e1e2f4dfaf0a3f33047"
     };
 
-    db.ref(`comments/${currentChatGameId}`).push(newMsg);
-    textInput.value = ''; 
-};
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-// --- 5. STATS & LIKES LOGIC ---
-function syncStats() {
-    db.ref('stats').on('value', (snapshot) => {
-        const stats = snapshot.val();
-        if (!stats) return;
-        for (let id in stats) {
-            const clickEl = document.getElementById(`clicks-${id}`);
-            const heartEl = document.getElementById(`hearts-${id}`);
-            if (clickEl) clickEl.innerText = stats[id].clicks || 0;
-            if (heartEl) heartEl.innerText = stats[id].hearts || 0;
-        }
-    });
+    let currentGameId = '';
+    const CARDS_PER_PAGE = 8;
+    let visibleCount = CARDS_PER_PAGE;
 
-    db.ref('comments').on('value', (snapshot) => {
-        const allComments = snapshot.val();
-        if (!allComments) return;
-        for (let id in allComments) {
-            const count = Object.keys(allComments[id]).length;
-            const btn = document.querySelector(`[onclick="openComments('${id}')"]`);
-            if (btn) btn.innerText = `💬 Chat (${count})`;
-        }
-    });
-}
-
-window.handleGameClick = function(id) {
-    let clicked = getStored('clicked_games');
-    if (!clicked.includes(id)) {
-        db.ref(`stats/${id}/clicks`).transaction(c => (c || 0) + 1);
-        clicked.push(id);
-        saveStored('clicked_games', clicked);
-    }
-};
-
-window.toggleHeart = function(id) {
-    if (event) {
-        event.stopPropagation(); // Prevents link from opening
-        event.preventDefault();
-    }
-
-    const btn = document.getElementById(`heart-${id}`);
-    let liked = getStored('liked_games');
-    const isAlreadyLiked = liked.includes(id);
-
-    db.ref(`stats/${id}/hearts`).transaction(c => {
-        return isAlreadyLiked ? Math.max(0, (c || 1) - 1) : (c || 0) + 1;
-    });
-
-    if (isAlreadyLiked) {
-        liked = liked.filter(item => item !== id);
-        btn.innerText = "🤍"; 
-        btn.classList.remove('active');
-    } else {
-        liked.push(id);
-        btn.innerText = "❤️"; 
-        btn.classList.add('active');
-    }
-    saveStored('liked_games', liked);
-};
-
-// --- 6. SEARCH & GRID LOGIC ---
-function updateGrid() {
     const searchInput = document.getElementById('searchInput');
-    const searchTerm = searchInput ? searchInput.value.toLowerCase() : "";
-    let matches = 0;
+    const cards = Array.from(document.querySelectorAll('.card'));
+    const loadMoreBtn = document.getElementById('loadMoreBtn');
 
-    allCards.forEach(card => {
-        const title = card.querySelector('.card-title').innerText.toLowerCase();
-        if (title.includes(searchTerm)) {
-            if (matches < visibleLimit) card.classList.add('visible');
-            else card.classList.remove('visible');
-            matches++;
-        } else {
-            card.classList.remove('visible');
-        }
-    });
+    function updateGallery() {
+        const query = searchInput.value.toLowerCase();
+        let matchCount = 0;
+        let totalMatches = 0;
 
-    const countEl = document.getElementById('gameCount');
-    if (countEl) {
-        countEl.innerText = `Showing ${Math.min(matches, visibleLimit)} of ${matches} games`;
-    }
-
-    const loadBtn = document.getElementById('loadMoreBtn');
-    if (loadBtn) {
-        loadBtn.style.display = matches > visibleLimit ? 'inline-block' : 'none';
-    }
-}
-
-window.showMore = () => { 
-    visibleLimit += 8; 
-    updateGrid(); 
-};
-
-// --- 7. INITIALIZATION ---
-document.addEventListener('DOMContentLoaded', () => {
-    allCards = Array.from(document.querySelectorAll('.card'));
-    syncStats();
-    
-    getStored('liked_games').forEach(id => {
-        const btn = document.getElementById(`heart-${id}`);
-        if (btn) { btn.innerText = "❤️"; btn.classList.add('active'); }
-    });
-
-    const searchBar = document.getElementById('searchInput');
-    if (searchBar) {
-        searchBar.addEventListener('input', () => {
-            visibleLimit = 8;
-            updateGrid();
+        cards.forEach(card => {
+            const title = card.querySelector('.card-title').innerText.toLowerCase();
+            const isMatch = title.includes(query);
+            
+            if (isMatch) {
+                totalMatches++;
+                if (matchCount < visibleCount) {
+                    card.classList.add('visible');
+                    matchCount++;
+                } else {
+                    card.classList.remove('visible');
+                }
+            } else {
+                card.classList.remove('visible');
+            }
         });
+
+        document.getElementById('gameCount').innerText = `Showing ${matchCount} of ${totalMatches} games`;
+        loadMoreBtn.style.display = (matchCount >= totalMatches) ? 'none' : 'inline-block';
     }
 
-    const chatInput = document.getElementById('comment-text');
-    if (chatInput) {
-        chatInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                window.sendComment();
+    // New Full Screen Logic
+    function toggleFullScreen(url) {
+        const gameWindow = window.open(url, '_blank');
+        if (gameWindow) {
+            gameWindow.focus();
+        }
+    }
+
+    searchInput.addEventListener('input', () => {
+        visibleCount = CARDS_PER_PAGE;
+        updateGallery();
+    });
+
+    loadMoreBtn.addEventListener('click', () => {
+        visibleCount += CARDS_PER_PAGE;
+        updateGallery();
+    });
+
+    function handleGameClick(id) {
+        db.ref('stats/' + id + '/clicks').transaction(c => (c || 0) + 1);
+    }
+
+    function toggleHeart(id) {
+        const btn = document.getElementById(`heart-${id}`);
+        const isActive = btn.classList.toggle('active');
+        btn.innerHTML = isActive ? '❤️' : '🤍';
+        db.ref('stats/' + id + '/hearts').transaction(c => isActive ? (c || 0) + 1 : Math.max(0, (c || 0) - 1));
+    }
+
+    function openComments(id) {
+        currentGameId = id;
+        document.getElementById('panel-game-title').innerText = id.replace(/-/g, ' ').toUpperCase();
+        document.getElementById('comment-panel').classList.add('active');
+        db.ref('comments/' + id).on('value', (snap) => {
+            const list = document.getElementById('commentList');
+            list.innerHTML = '';
+            const data = snap.val();
+            if (data) {
+                Object.values(data).reverse().forEach(c => {
+                    const div = document.createElement('div');
+                    div.className = 'single-comment';
+                    div.innerHTML = `<strong>${c.name}</strong><br>${c.text}`;
+                    list.appendChild(div);
+                });
             }
         });
     }
 
-    updateGrid();
-    db.ref('siteVisits').transaction(count => (count || 0) + 1);
-});
+    function closeComments() {
+        document.getElementById('comment-panel').classList.remove('active');
+    }
+
+    function submitComment() {
+        const name = document.getElementById('commentName').value || 'Guest';
+        const text = document.getElementById('commentText').value;
+        if (!text) return;
+        db.ref('comments/' + currentGameId).push({ name, text, timestamp: Date.now() });
+        document.getElementById('commentText').value = '';
+    }
+
+    db.ref('stats').on('value', (snap) => {
+        const stats = snap.val();
+        if (!stats) return;
+        Object.keys(stats).forEach(id => {
+            if (document.getElementById(`clicks-${id}`)) document.getElementById(`clicks-${id}`).innerText = stats[id].clicks || 0;
+            if (document.getElementById(`hearts-${id}`)) document.getElementById(`hearts-${id}`).innerText = stats[id].hearts || 0;
+        });
+    });
+
+    updateGallery();
 </script>
 </body>
 </html>
